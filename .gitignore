@@ -2,6 +2,8 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/.idea/.idea.50-50/.idea
-/.vs/50-50
-/Models/obj
+/.idea/*
+/.vs/*
+*.http
+bin
+obj
