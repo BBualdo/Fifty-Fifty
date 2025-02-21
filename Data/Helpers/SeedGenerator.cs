@@ -1,0 +1,57 @@
+﻿using Models;
+
+namespace Data.Helpers;
+
+internal class SeedGenerator
+{
+    public static List<TaskTemplate> GenerateTemplateTasks() => [
+    new() { Title = "Do the dishes", Score = 10 },
+    new() { Title = "Take out the trash", Score = 5 },
+    new() { Title = "Vacuum the floor", Score = 15 },
+    new() { Title = "Clean the bathroom", Score = 20 },
+    new() { Title = "Mow the lawn", Score = 25 },
+    new() { Title = "Wash the car", Score = 30 },
+    new() { Title = "Walk the dog", Score = 10 },
+    new() { Title = "Feed the cat", Score = 5 },
+    new() { Title = "Water the plants", Score = 5 },
+    new() { Title = "Cook dinner", Score = 20 },
+    new() { Title = "Do the laundry", Score = 15 },
+    new() { Title = "Clean the windows", Score = 10 },
+    new() { Title = "Organize the closet", Score = 15 },
+    new() { Title = "Dust the furniture", Score = 10 },
+    new() { Title = "Take out recycling", Score = 5 },
+    new() { Title = "Wipe down kitchen counters", Score = 5 },
+    new() { Title = "Sweep the porch", Score = 10 },
+    new() { Title = "Change bed sheets", Score = 15 },
+    new() { Title = "Empty the dishwasher", Score = 5 },
+    new() { Title = "Fold and put away laundry", Score = 10 },
+    new() { Title = "Clean out the fridge", Score = 20 },
+    new() { Title = "Take care of compost", Score = 5 },
+    new() { Title = "Shovel snow", Score = 30 },
+    new() { Title = "Weed the garden", Score = 20 },
+    new() { Title = "Clean up after a meal", Score = 10 },
+    new() { Title = "Sweep the floor", Score = 10 },
+    new() { Title = "Tidy up the living room", Score = 10 },
+    new() { Title = "Wipe down bathroom mirror", Score = 5 },
+    new() { Title = "Take out the mail", Score = 5 },
+    new() { Title = "Organize pantry", Score = 15 },
+    new() { Title = "Replace toilet paper", Score = 5 },
+    new() { Title = "Check and refill pet water bowl", Score = 5 },
+    new() { Title = "Polish wooden furniture", Score = 10 },
+    new() { Title = "Sanitize door handles", Score = 5 },
+    new() { Title = "Clean behind the sofa", Score = 15 },
+    new() { Title = "Vacuum the stairs", Score = 15 },
+    new() { Title = "Take care of houseplants", Score = 5 },
+    new() { Title = "Organize shoes at the entrance", Score = 5 },
+    new() { Title = "Wipe down light switches", Score = 5 },
+    new() { Title = "Declutter a room", Score = 15 },
+    new() { Title = "Clean up kids' toys", Score = 10 },
+    new() { Title = "Scrub kitchen sink", Score = 10 },
+    new() { Title = "Sort out junk drawer", Score = 10 },
+    new() { Title = "Defrost the freezer", Score = 20 },
+    new() { Title = "Replace burnt-out light bulbs", Score = 5 },
+    new() { Title = "Organize office desk", Score = 10 },
+    new() { Title = "Disinfect TV remote and electronics", Score = 5 },
+    new() { Title = "Sweep the driveway", Score = 10 }
+    ];
+}

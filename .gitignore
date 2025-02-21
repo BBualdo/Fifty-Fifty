@@ -7,3 +7,4 @@
 *.http
 bin
 obj
+/WebAPI/appsettings.Development.json
