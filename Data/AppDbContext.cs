@@ -17,16 +17,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.ConfigureInvitations();
         modelBuilder.HasDefaultSchema("fifty-fifty");
-
         modelBuilder.SeedTaskTemplates();
-    }
-}
-
-public static class ModelBuilderExtensions
-{
-    public static void SeedTaskTemplates(this ModelBuilder modelbuilder)
-    {
-        modelbuilder.Entity<TaskTemplate>().HasData(SeedGenerator.GenerateTemplateTasks());
     }
 }
