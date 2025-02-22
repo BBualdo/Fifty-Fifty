@@ -18,6 +18,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ConfigureInvitations();
+        modelBuilder.ConfigureTasks();
+        modelBuilder.ConfigureHouseholds();
         modelBuilder.HasDefaultSchema("fifty-fifty");
         modelBuilder.SeedTaskTemplates();
     }

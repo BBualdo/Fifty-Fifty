@@ -5,9 +5,12 @@ namespace Models;
 public class Task
 {
     public Guid Id { get; set; }
-    [StringLength(64)] public required string Title { get; set; }
+    public required string Title { get; set; }
     public DateOnly AddedAt { get; set; }
+
+    [Range(1, 50)] 
     public int Score { get; set; }
+
     public bool IsCompleted { get; set; } = false;
     public DateOnly? CompletedAt { get; set; }
     public string? UserId { get; set; }
