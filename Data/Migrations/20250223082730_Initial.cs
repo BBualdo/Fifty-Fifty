@@ -239,9 +239,9 @@ namespace Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ExpirationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    InvitedUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    InvitedUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     HouseHoldId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    InvitingUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    InvitingUserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {

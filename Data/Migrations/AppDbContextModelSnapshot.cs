@@ -200,9 +200,11 @@ namespace Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("InvitedUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("InvitingUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -716,12 +718,14 @@ namespace Data.Migrations
                     b.HasOne("Models.User", "InvitedUser")
                         .WithMany("ReceivedInvitations")
                         .HasForeignKey("InvitedUserId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("Models.User", "InvitingUser")
                         .WithMany("SentInvitations")
                         .HasForeignKey("InvitingUserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Household");
 
