@@ -30,7 +30,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddIdentityCore<User>()
+builder.Services.AddIdentity<User, IdentityRole>()
+    .AddApiEndpoints()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
@@ -38,19 +39,33 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ??
     throw new ArgumentException("Database connection string not found!")));
 
+builder.Services.AddCors(config => { 
+    config.AddPolicy("AllowDocker", policy => 
+        policy.WithOrigins(["http://host.docker.internal:8080", "http://localhost:8080"])
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials());
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(configuration =>
+        configuration.SwaggerEndpoint("/openapi/v1.json", "Fifty-Fifty v1"));
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowDocker");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapIdentityApi<User>();
 
 app.Run();
