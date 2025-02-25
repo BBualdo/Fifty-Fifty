@@ -6,11 +6,11 @@ public class Invitation
     public DateTime ExpirationDate { get; set; } = DateTime.Now.AddDays(3);
 
     public Guid InvitedUserId { get; set; }
-    public User? InvitedUser { get; set; }
+    public User InvitedUser { get; set; } = null!;
 
     public Guid HouseHoldId { get; set; }
-    public Household? Household { get; set; }
+    public Household Household { get; set; } = null!;
 
     public Guid InvitingUserId { get; set; }
-    public User? InvitingUser { get; set; }
-}
+    public User InvitingUser { get; set; } = null!;
+} 

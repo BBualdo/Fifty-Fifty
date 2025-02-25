@@ -5,7 +5,7 @@ namespace Models;
 public class Task
 {
     public Guid Id { get; set; }
-    public required string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
     public DateOnly AddedAt { get; set; }
 
     [Range(1, 50)] 
@@ -15,6 +15,6 @@ public class Task
     public DateOnly? CompletedAt { get; set; }
     public Guid? UserId { get; set; }
     public User? AssignedUser { get; set; }
-    public required Guid HouseHoldId { get; set; }
-    public Household? Household { get; set; }
+    public Guid HouseHoldId { get; set; }
+    public Household Household { get; set; } = null!;
 }

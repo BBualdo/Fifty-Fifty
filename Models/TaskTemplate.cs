@@ -3,7 +3,7 @@
 public class TaskTemplate
 {
     public int Id { get; set; }
-    public required string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
     public int Score { get; set; }
 }
 
