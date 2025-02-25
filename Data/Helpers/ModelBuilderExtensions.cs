@@ -10,6 +10,17 @@ internal static class ModelBuilderExtensions
     {
         modelBuilder.Entity<TaskTemplate>().HasData(SeedGenerator.GenerateTemplateTasks());
     }
+    internal static void ConfigureUsers(this ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.Property(u => u.Username).IsRequired().HasMaxLength(64);
+            entity.Property(u => u.Email).IsRequired().HasMaxLength(128);
+            entity.Property(u => u.PasswordHash).IsRequired();
+            entity.Property(u => u.FirstName).IsRequired().HasMaxLength(48);
+            entity.Property(u => u.LastName).HasMaxLength(64);
+        });
+    }
 
     internal static void ConfigureInvitations(this ModelBuilder modelBuilder) 
     {
