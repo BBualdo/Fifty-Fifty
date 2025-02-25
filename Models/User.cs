@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿namespace Models;
 
-namespace Models;
-
-public class User : IdentityUser
+public class User
 {
+    public Guid Id { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
+    public string? LastName { get; set; }
     public int Score { get; set; } = 0;
     public ICollection<Household>? Households { get; set; }
     public ICollection<Invitation>? SentInvitations { get; set; }

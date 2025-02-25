@@ -9,7 +9,7 @@ public class TaskTemplate
 
 public static class TaskTemplateExtensions
 {
-    public static Task ToTask(this TaskTemplate taskTemplate, string userId, Guid houseHoldId)
+    public static Task ToTask(this TaskTemplate taskTemplate, Guid userId, Guid houseHoldId)
     {
         return new Task
         {

@@ -13,7 +13,7 @@ public class Task
 
     public bool IsCompleted { get; set; } = false;
     public DateOnly? CompletedAt { get; set; }
-    public string? UserId { get; set; }
+    public Guid? UserId { get; set; }
     public User? AssignedUser { get; set; }
     public required Guid HouseHoldId { get; set; }
     public Household? Household { get; set; }

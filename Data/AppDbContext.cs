@@ -1,12 +1,11 @@
 ﻿using Data.Helpers;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Models;
 using Task = Models.Task;
 
 namespace Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<User>(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<Household> Households { get; set; }
     public DbSet<Task> Tasks { get; set; }
