@@ -19,6 +19,8 @@ internal static class ModelBuilderExtensions
             entity.Property(u => u.PasswordHash).IsRequired();
             entity.Property(u => u.FirstName).IsRequired().HasMaxLength(48);
             entity.Property(u => u.LastName).HasMaxLength(64);
+            entity.HasIndex(u => u.Email).IsUnique();
+            entity.HasIndex(u => u.Username).IsUnique();
         });
     }
 
