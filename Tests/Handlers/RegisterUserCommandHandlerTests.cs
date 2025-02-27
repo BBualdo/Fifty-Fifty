@@ -143,7 +143,7 @@ public class RegisterUserCommandHandlerTests
     [InlineData("u", "Username must be at least 4 characters long.")]
     [InlineData("super_duper_long_username1234567890", "Username can't be longer than 32 characters.")]
 
-    public async Task Handle_ShouldNotRegisterUser_WhenInvalidUsername(string username, string? errorMessage)
+    public async Task Handle_ShouldNotRegisterUser_WhenInvalidUsername(string username, string errorMessage)
     {
         // Arrange
         await ClearDatabase();
@@ -183,6 +183,54 @@ public class RegisterUserCommandHandlerTests
         Assert.False(result.IsSuccess);
         Assert.Equal("Register failed", result.Message);
         Assert.Contains("Invalid email address.", result.ErrorList!.First());
+    }
+
+    [Theory]
+    [InlineData("", "First name can't be empty.")]
+    [InlineData("   ", "First name can't be empty.")]
+    [InlineData("s", "First name must be at least 2 characters long.")]
+    [InlineData("thelongestnameintheworldcoveredbytestsanyway", "First name can't be longer than 32 characters.")]
+    [InlineData("12315151", "First name can only contain letters.")]
+    [InlineData("test name", "First name can only contain letters.")]
+    [InlineData("test@name", "First name can only contain letters.")]
+    [InlineData("test_name", "First name can only contain letters.")]
+    public async Task Handle_ShouldNotRegisterUser_WhenInvalidFirstName(string firstName, string errorMessage)
+    {
+        // Arrange
+        await ClearDatabase();
+        var command = new RegisterUserCommand(firstName, null, "TestUser", "test@test.com", "Test123!");
+        
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+        
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Register failed", result.Message);
+        Assert.Contains(errorMessage, result.ErrorList!);
+    }
+
+    [Theory]
+    [InlineData("s", "Last name must be at least 2 characters long.")]
+    [InlineData("thelongestnameintheworldcoveredbytestsanyway", "Last name can't be longer than 32 characters.")]
+    [InlineData("12315151", "Last name can only contain letters.")]
+    [InlineData("test name", "Last name can only contain letters.")]
+    [InlineData("test@name", "Last name can only contain letters.")]
+    [InlineData("test_name", "Last name can only contain letters.")]
+    public async Task Handle_ShouldNotRegisterUser_WhenInvalidLastName(string lastName, string errorMessage)
+    {
+        // Arrange
+        await ClearDatabase();
+        var command = new RegisterUserCommand("Test", lastName, "TestUser", "test@test.com", "Test123!");
+        
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+        
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Register failed", result.Message);
+        Assert.Contains(errorMessage, result.ErrorList!);
     }
 
     private async Task ClearDatabase()
