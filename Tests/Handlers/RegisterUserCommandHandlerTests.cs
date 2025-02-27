@@ -146,6 +146,7 @@ public class RegisterUserCommandHandlerTests
     public async Task Handle_ShouldNotRegisterUser_WhenInvalidUsername(string username, string? errorMessage)
     {
         // Arrange
+        await ClearDatabase();
         var command = new RegisterUserCommand("User", null, username, "test@test.com", "Test123!");
 
         // Act

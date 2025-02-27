@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using System.Text.RegularExpressions;
 
 namespace Application.Commands.Users.Register;
 
@@ -15,11 +16,11 @@ public class RegisterUserValidator : AbstractValidator<RegisterUserCommand>
             .WithMessage("Username can't be longer than 32 characters.");
 
         RuleFor(x => x.Username)
-            .Matches("^*[a-zA-Z0-9_]*$")
+            .Must(username => Regex.IsMatch(username.Trim(), "^[a-zA-Z0-9_]*$"))
             .WithMessage("Username can only contain letters, numbers and underscores.");
 
         RuleFor(x => x.Username)
-            .Must(x => !x.Contains(" "))
+            .Must(x => !x.Trim().Contains(" "))
             .WithMessage("Username can't contain spaces.");
 
         RuleFor(x => x.Username)
