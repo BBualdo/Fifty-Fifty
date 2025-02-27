@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Models;
 using System.Reflection;
+using FluentValidation;
+using Application.Commands.Users.Register;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +21,11 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
-builder.Services.AddMediatR(config => config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+builder.Services.AddMediatR(config => 
+    config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+// Registering all validators in assembly (not only those for user registering)
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
 
 var app = builder.Build();
 

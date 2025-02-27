@@ -15,11 +15,11 @@ internal static class ModelBuilderExtensions
     {
         modelBuilder.Entity<User>(entity =>
         {
-            entity.Property(u => u.Username).IsRequired().HasMaxLength(64);
-            entity.Property(u => u.Email).IsRequired().HasMaxLength(128);
+            entity.Property(u => u.Username).IsRequired().HasMaxLength(32);
+            entity.Property(u => u.Email).IsRequired().HasMaxLength(64);
             entity.Property(u => u.PasswordHash).IsRequired();
-            entity.Property(u => u.FirstName).IsRequired().HasMaxLength(48);
-            entity.Property(u => u.LastName).HasMaxLength(64);
+            entity.Property(u => u.FirstName).IsRequired().HasMaxLength(32);
+            entity.Property(u => u.LastName).HasMaxLength(32);
             entity.HasIndex(u => u.Email).IsUnique();
             entity.HasIndex(u => u.Username).IsUnique();
         });

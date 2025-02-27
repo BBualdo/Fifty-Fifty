@@ -1,9 +1,11 @@
 ﻿using Application.Commands.Users.Register;
 using Data;
 using FakeItEasy;
+using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Models;
+using Task = System.Threading.Tasks.Task;
 
 namespace Tests.Handlers;
 
@@ -12,6 +14,7 @@ public class RegisterUserCommandHandlerTests
     private readonly RegisterUserCommandHandler _handler;
     private readonly AppDbContext _context;
     private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly IValidator<RegisterUserCommand> _validator;
 
     public RegisterUserCommandHandlerTests()
     {
@@ -24,11 +27,13 @@ public class RegisterUserCommandHandlerTests
         A.CallTo(() => _passwordHasher.HashPassword(An<User>._, A<string>._))
                         .Returns("hashedPassword");
 
-        _handler = new RegisterUserCommandHandler(_context, _passwordHasher);
+        _validator = new RegisterUserValidator();
+
+        _handler = new RegisterUserCommandHandler(_context, _passwordHasher, _validator);
     }
 
     [Fact]
-    public async System.Threading.Tasks.Task Handle_ShouldRegisterUser_WhenDataIsValid()
+    public async Task Handle_ShouldRegisterUser_WhenDataIsValid()
     {
         // Arrange
         var command = new RegisterUserCommand("Sebastian", null, "BBualdo", "test@test.com", "Test123!");
@@ -61,7 +66,7 @@ public class RegisterUserCommandHandlerTests
     }
 
     [Fact]
-    public async System.Threading.Tasks.Task Handle_ShouldNotRegisterUser_WhenEmailIsAlreadyTaken()
+    public async Task Handle_ShouldNotRegisterUser_WhenEmailIsAlreadyTaken()
     {
         // Arrange
         var user1 = new User() { 
@@ -94,7 +99,7 @@ public class RegisterUserCommandHandlerTests
     [InlineData("user1", "user1")]
     [InlineData("user1", "UsER1")]
     [InlineData("user1", "  UsER1")]
-    public async System.Threading.Tasks.Task Handle_ShouldNotRegisterUser_WhenUsernameIsAlreadyTaken(string username1, string username2)
+    public async Task Handle_ShouldNotRegisterUser_WhenUsernameIsAlreadyTaken(string username1, string username2)
     {
         // Arrange
         await ClearDatabase();
@@ -126,7 +131,34 @@ public class RegisterUserCommandHandlerTests
         Assert.Equal(1, usersWithSameUsername);
     }
 
-    private async System.Threading.Tasks.Task ClearDatabase()
+    [Theory]
+    [InlineData("user~%2", "Username can only contain letters, numbers and underscores.")]
+    [InlineData("user1@", "Username can only contain letters, numbers and underscores.")]
+    [InlineData("user'\\", "Username can only contain letters, numbers and underscores.")]
+    [InlineData("USER+=", "Username can only contain letters, numbers and underscores.")]    
+    [InlineData("user 1", "Username can't contain spaces.")]
+    [InlineData("", "Username can't be empty.")]
+    [InlineData("   ", "Username can't be empty.")]
+    [InlineData("12345678", "Username can't contain only numbers.")]
+    [InlineData("u", "Username must be at least 4 characters long.")]
+    [InlineData("super_duper_long_username1234567890", "Username can't be longer than 32 characters.")]
+
+    public async Task Handle_ShouldNotRegisterUser_WhenInvalidUsername(string username, string? errorMessage)
+    {
+        // Arrange
+        var command = new RegisterUserCommand("User", null, username, "test@test.com", "Test123!");
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Register failed", result.Message);
+        Assert.Contains(errorMessage, result.ErrorList!);
+    }
+
+    private async Task ClearDatabase()
     {
         _context.Users.RemoveRange(_context.Users);
         await _context.SaveChangesAsync();
