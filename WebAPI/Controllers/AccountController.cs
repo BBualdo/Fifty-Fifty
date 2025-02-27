@@ -1,5 +1,4 @@
-﻿using DTOs.Account;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers;
 
@@ -8,18 +7,13 @@ namespace WebAPI.Controllers;
 public class AccountController : ControllerBase
 {
     [HttpPost("register")]
-    public IActionResult Register(RegisterRequestDto req)
+    public IActionResult Register()
     {
-        // Creating new user object
-        // Hashing password
-        // Saving user to database
-        // Returning 201 Created status code
-
         return NoContent();
     }
 
     [HttpPost("login")]
-    public IActionResult Login(LoginRequestDto req)
+    public IActionResult Login()
     {
         // Checking if user exists
         // Matching password hashes
@@ -33,7 +27,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public IActionResult Refresh(RefreshTokenRequestDto req)
+    public IActionResult Refresh()
     {
         // Checking if refresh token exists, is valid, not user or revoked and belongs to user
         // Setting refresh token as used
@@ -45,7 +39,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("logout")]
-    public IActionResult Logout(RefreshTokenRequestDto req)
+    public IActionResult Logout()
     {
         // Checking if refresh token exists, is valid, not user or revoked and belongs to user
         // Setting refresh token as revoked

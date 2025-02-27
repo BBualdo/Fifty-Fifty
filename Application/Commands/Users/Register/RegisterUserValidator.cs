@@ -7,13 +7,16 @@ public class RegisterUserValidator : AbstractValidator<RegisterUserCommand>
 {
     public RegisterUserValidator()
     {
+        ConfigureUsernameRules();
+        ConfigureEmailRules();
+    }
+
+    private void ConfigureUsernameRules()
+    {
         RuleFor(x => x.Username)
-            .NotEmpty()
-            .WithMessage("Username can't be empty.")
-            .MinimumLength(4)
-            .WithMessage("Username must be at least 4 characters long.")
-            .MaximumLength(32)
-            .WithMessage("Username can't be longer than 32 characters.");
+            .NotEmpty().WithMessage("Username can't be empty.")
+            .MinimumLength(4).WithMessage("Username must be at least 4 characters long.")
+            .MaximumLength(32).WithMessage("Username can't be longer than 32 characters.");
 
         RuleFor(x => x.Username)
             .Must(username => Regex.IsMatch(username.Trim(), "^[a-zA-Z0-9_]*$"))
@@ -26,5 +29,12 @@ public class RegisterUserValidator : AbstractValidator<RegisterUserCommand>
         RuleFor(x => x.Username)
             .Must(x => !x.All(char.IsDigit))
             .WithMessage("Username can't contain only numbers.");
+    }
+
+    private void ConfigureEmailRules()
+    {
+        RuleFor(u => u.Email)
+            .Matches(@"^(?!.*\.\.)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+            .WithMessage("Invalid email address.");
     }
 }

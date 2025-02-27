@@ -159,6 +159,32 @@ public class RegisterUserCommandHandlerTests
         Assert.Contains(errorMessage, result.ErrorList!);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("test")]
+    [InlineData("test@")]
+    [InlineData("test@com")]
+    [InlineData("test.com")]
+    [InlineData("test@.com")]
+    [InlineData("test@com.")]
+    [InlineData("test\\s@test.com")]
+    [InlineData("test@te st.com")]
+    public async Task Handle_ShouldNotRegisterUser_WhenInvalidEmail(string email)
+    {
+        // Arrange
+        await ClearDatabase();
+        var command = new RegisterUserCommand("User", null, "user123", email, "Test123!");
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Register failed", result.Message);
+        Assert.Contains("Invalid email address.", result.ErrorList!.First());
+    }
+
     private async Task ClearDatabase()
     {
         _context.Users.RemoveRange(_context.Users);
