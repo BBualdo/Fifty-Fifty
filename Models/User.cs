@@ -13,8 +13,8 @@ public class User
     public DateTime? LastLoginAt { get; set; }
     public UserRole Role { get; set; } = UserRole.User;
 
-    public ICollection<Household>? Households { get; set; }
-    public ICollection<Invitation>? SentInvitations { get; set; }
-    public ICollection<Invitation>? ReceivedInvitations { get; set; }
-    public ICollection<RefreshToken>? RefreshTokens { get; set; }
+    public ICollection<Household> Households { get; set; } = [];
+    public ICollection<Invitation> SentInvitations { get; set; } = [];
+    public ICollection<Invitation> ReceivedInvitations { get; set; } = [];
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
 }
