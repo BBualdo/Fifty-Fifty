@@ -1,15 +1,16 @@
 ﻿using Data;
+using DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Models;
 
 namespace Application.Commands.Users.Register;
 
-public class RegisterUserCommandHandler(AppDbContext context, IPasswordHasher<User> passwordHasher) : IRequestHandler<RegisterUserCommand>
+public class RegisterUserCommandHandler(AppDbContext context, IPasswordHasher<User> passwordHasher) : IRequestHandler<RegisterUserCommand, ValidationResult>
 {
     private readonly AppDbContext _context = context;
     private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
-    public async System.Threading.Tasks.Task Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+    public async Task<ValidationResult> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
         var user = new User
         {
@@ -23,5 +24,7 @@ public class RegisterUserCommandHandler(AppDbContext context, IPasswordHasher<Us
 
         await _context.Users.AddAsync(user, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
+
+        return new ValidationResult();
     }
 }

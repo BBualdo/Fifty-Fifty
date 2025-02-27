@@ -34,12 +34,16 @@ public class RegisterUserCommandHandlerTests
         var command = new RegisterUserCommand("Sebastian", null, "BBualdo", "test@test.com", "Test123!");
 
         // Act
-        await _handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
         var userCreatedAt = DateTime.UtcNow.Date;
 
         // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+
         var addedUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
         Assert.NotNull(addedUser);
+
         Assert.Equal(command.FirstName, addedUser.FirstName);
         Assert.Equal(command.LastName, addedUser.LastName);
         Assert.Equal(command.Username, addedUser.Username);
@@ -49,6 +53,7 @@ public class RegisterUserCommandHandlerTests
         Assert.Equal(userCreatedAt, addedUser.CreatedAt.Date);
         Assert.Null(addedUser.LastLoginAt);
         Assert.Equal(UserRole.User, addedUser.Role);
+
         Assert.Empty(addedUser.Households);
         Assert.Empty(addedUser.ReceivedInvitations);
         Assert.Empty(addedUser.SentInvitations);
