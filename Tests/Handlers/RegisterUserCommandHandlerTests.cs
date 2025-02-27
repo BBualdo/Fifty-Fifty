@@ -59,4 +59,76 @@ public class RegisterUserCommandHandlerTests
         Assert.Empty(addedUser.SentInvitations);
         Assert.Empty(addedUser.RefreshTokens);
     }
+
+    [Fact]
+    public async System.Threading.Tasks.Task Handle_ShouldNotRegisterUser_WhenEmailIsAlreadyTaken()
+    {
+        // Arrange
+        var user1 = new User() { 
+            Id = Guid.NewGuid(),
+            Email = "user1@test.com",
+            Username = "user1",
+            PasswordHash = "hashedPassword",
+            FirstName = "User",
+        };
+
+        await _context.Users.AddAsync(user1);
+        await _context.SaveChangesAsync();
+
+        var command = new RegisterUserCommand("User", null, "user2", "user1@test.com", "Test123!");
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Register failed", result.Message);
+        Assert.Equal("Email is already taken.", result.ErrorList!.First());
+
+        var usersWithSameEmail = await _context.Users.Where(u => u.Email == "user1@test.com").CountAsync();
+        Assert.Equal(1, usersWithSameEmail);
+    }
+
+    [Theory]
+    [InlineData("user1", "user1")]
+    [InlineData("user1", "UsER1")]
+    [InlineData("user1", "  UsER1")]
+    public async System.Threading.Tasks.Task Handle_ShouldNotRegisterUser_WhenUsernameIsAlreadyTaken(string username1, string username2)
+    {
+        // Arrange
+        await ClearDatabase();
+
+        var user1 = new User()
+        {
+            Id = Guid.NewGuid(),
+            Email = "user1@test.com",
+            Username = username1,
+            PasswordHash = "hashedPassword",
+            FirstName = "User",
+        };
+
+        await _context.Users.AddAsync(user1);
+        await _context.SaveChangesAsync();
+
+        var command = new RegisterUserCommand("User", null, username2, "user2@test.com", "Test123!");
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Register failed", result.Message);
+        Assert.Equal("Username is already taken.", result.ErrorList!.First());
+
+        var usersWithSameUsername = await _context.Users.Where(u => u.Username == username1.Trim().ToLower()).CountAsync();
+        Assert.Equal(1, usersWithSameUsername);
+    }
+
+    private async System.Threading.Tasks.Task ClearDatabase()
+    {
+        _context.Users.RemoveRange(_context.Users);
+        await _context.SaveChangesAsync();
+    }
 }

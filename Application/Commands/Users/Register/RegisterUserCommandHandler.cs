@@ -2,6 +2,7 @@
 using DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Models;
 
 namespace Application.Commands.Users.Register;
@@ -12,6 +13,12 @@ public class RegisterUserCommandHandler(AppDbContext context, IPasswordHasher<Us
     private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
     public async Task<ValidationResult> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
+        if (await _context.Users.AnyAsync(u => u.Email == request.Email, cancellationToken))
+            return new ValidationResult("Register failed", ["Email is already taken."]);
+
+        if (await _context.Users.AnyAsync(u => u.Username.Trim().ToLower() == request.Username.Trim().ToLower(), cancellationToken))
+            return new ValidationResult("Register failed", ["Username is already taken."]);
+
         var user = new User
         {
             Id = Guid.NewGuid(),

@@ -10,6 +10,7 @@ internal static class ModelBuilderExtensions
     {
         modelBuilder.Entity<TaskTemplate>().HasData(SeedGenerator.GenerateTemplateTasks());
     }
+
     internal static void ConfigureUsers(this ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
