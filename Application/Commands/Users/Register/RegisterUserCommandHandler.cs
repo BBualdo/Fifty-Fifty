@@ -8,13 +8,20 @@ namespace Application.Commands.Users.Register;
 public class RegisterUserCommandHandler(AppDbContext context, IPasswordHasher<User> passwordHasher) : IRequestHandler<RegisterUserCommand>
 {
     private readonly AppDbContext _context = context;
-    private readonly IPasswordHasher<User> _passwordHasher = passwordHasher; 
+    private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
     public async System.Threading.Tasks.Task Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
-        // Creating new user object
-        // Hashing password
-        // Saving user to database
-        // Returning 201 Created status code
-        throw new NotImplementedException();
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = request.Email,
+            Username = request.Username,
+            PasswordHash = _passwordHasher.HashPassword(new User(), request.Password),
+            FirstName = request.FirstName,
+            LastName = request.LastName
+        };
+
+        await _context.Users.AddAsync(user, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }
