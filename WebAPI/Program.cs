@@ -5,8 +5,12 @@ using Models;
 using System.Reflection;
 using FluentValidation;
 using Application.Commands.Users.Register;
+using DTOs;
+using Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JWT"));
 
 // Add services to the container.
 
@@ -19,13 +23,14 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ??
     throw new ArgumentException("Database connection string not found!")));
 
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-
 builder.Services.AddMediatR(config => 
     config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
 // Registering all validators in assembly (not only those for user registering)
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommandValidator>();
+
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 
 var app = builder.Build();
 
