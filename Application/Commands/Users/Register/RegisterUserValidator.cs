@@ -1,5 +1,5 @@
-﻿using FluentValidation;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
+using FluentValidation;
 
 namespace Application.Commands.Users.Register;
 
@@ -11,6 +11,7 @@ public class RegisterUserValidator : AbstractValidator<RegisterUserCommand>
         ConfigureEmailRules();
         ConfigureFirstNameRules();
         ConfigureLastNameRules();
+        ConfigurePasswordRules();
     }
 
     private void ConfigureUsernameRules()
@@ -50,5 +51,30 @@ public class RegisterUserValidator : AbstractValidator<RegisterUserCommand>
             .MaximumLength(32).WithMessage("Last name can't be longer than 32 characters.")
             .Must(lastName => lastName.All(char.IsLetter)).WithMessage("Last name can only contain letters.")
             .When(u => !string.IsNullOrEmpty(u.LastName));
+    }
+
+    private void ConfigurePasswordRules()
+    {
+        RuleFor(u => u.Password)
+            .NotEmpty().WithMessage("Password can't be empty.")
+            .MinimumLength(6).WithMessage("Password must be at least 6 characters long.")
+            .MaximumLength(32).WithMessage("Password can't be longer than 32 characters.")
+            .Custom((password, context) =>
+            {
+                if (!password.Any(char.IsDigit))
+                    context.AddFailure("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
+                
+                if (!password.Any(char.IsLetter))
+                    context.AddFailure("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
+                
+                if (!password.Any(char.IsUpper))
+                    context.AddFailure("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
+                
+                if (!password.Any(char.IsLower))
+                    context.AddFailure("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
+                
+                if (password.All(char.IsLetterOrDigit))
+                    context.AddFailure("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
+            });
     }
 }

@@ -233,6 +233,33 @@ public class RegisterUserCommandHandlerTests
         Assert.Contains(errorMessage, result.ErrorList!);
     }
 
+    [Theory]
+    [InlineData("", "Password can't be empty.")]
+    [InlineData("   ", "Password can't be empty.")]
+    [InlineData("s", "Password must be at least 6 characters long.")]
+    [InlineData("SuperLongPasswordIsImportantButThereAreLimits", "Password can't be longer than 32 characters.")]
+    [InlineData("weakpassword",
+        "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.")]
+    [InlineData("WeakPassword",
+        "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.")]
+    [InlineData("WeakPassword1",
+        "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.")]
+    public async Task Handle_ShouldNotRegisterUser_WhenInvalidPassword(string password, string errorMessage)
+    {
+        // Arrange
+        await ClearDatabase();
+        var command = new RegisterUserCommand("Test", null, "TestUser", "test@test.com", password);
+        
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+        
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Register failed", result.Message);
+        Assert.Contains(errorMessage, result.ErrorList!);
+    }
+
     private async Task ClearDatabase()
     {
         _context.Users.RemoveRange(_context.Users);
