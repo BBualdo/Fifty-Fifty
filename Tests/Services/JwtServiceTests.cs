@@ -52,4 +52,28 @@ public class JwtServiceTests
         Assert.Equal(jwtToken.Claims.First(c => c.Type == "role").Value, user.Role.ToString());
         Assert.Equal(jwtToken.Claims.First(c => c.Type == "name").Value, user.Username);
     }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(5)]
+    [InlineData(10)]
+    public void GenerateRefreshToken_ShouldReturnUniqueRefreshTokenEveryTime(int iterationCount)
+    {
+        // Arrange
+        var tokens = new List<string>();
+        var user = new User()
+        {
+            Id = Guid.NewGuid(),
+            Email = "test@email.com",
+            Username = "TestUser",
+        };
+        
+        // Act
+        for (var i = 0; i < iterationCount; i++)
+            tokens.Add(_jwtService.GenerateRefreshToken(user).Token);  
+        
+        // Assert
+        Assert.NotEmpty(tokens);
+        Assert.Equal(tokens.Count, new HashSet<string>(tokens).Count);
+    }
 }
