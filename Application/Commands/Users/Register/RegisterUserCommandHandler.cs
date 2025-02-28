@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Models;
+using Utilities;
 
 namespace Application.Commands.Users.Register;
 
@@ -32,8 +33,8 @@ public class RegisterUserCommandHandler(AppDbContext context, IPasswordHasher<Us
             Email = request.Email.Trim(),
             Username = request.Username.Trim(),
             PasswordHash = _passwordHasher.HashPassword(new User(), request.Password),
-            FirstName = request.FirstName.Trim(),
-            LastName = request.LastName?.Trim()
+            FirstName = HelperFunctions.CapitalizeFirst(request.FirstName.Trim())!,
+            LastName = HelperFunctions.CapitalizeFirst(request.LastName?.Trim())
         };
 
         await _context.Users.AddAsync(user, cancellationToken);

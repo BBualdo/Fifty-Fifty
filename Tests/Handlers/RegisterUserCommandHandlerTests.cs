@@ -5,6 +5,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Models;
+using Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Tests.Handlers;
@@ -63,6 +64,25 @@ public class RegisterUserCommandHandlerTests
         Assert.Empty(addedUser.ReceivedInvitations);
         Assert.Empty(addedUser.SentInvitations);
         Assert.Empty(addedUser.RefreshTokens);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCapitalizeFirstNameAndLastName()
+    {
+        // Arrange
+        var command = new RegisterUserCommand("sebastian", "testing", "BBualdo", "test@test.com", "Test123!");
+        
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+        
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        
+        var addedUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
+        Assert.NotNull(addedUser);
+        Assert.Equal(HelperFunctions.CapitalizeFirst(command.FirstName), addedUser.FirstName); 
+        Assert.Equal(HelperFunctions.CapitalizeFirst(command.LastName), addedUser.LastName);
     }
 
     [Fact]

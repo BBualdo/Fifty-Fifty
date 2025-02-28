@@ -1,6 +1,6 @@
 ﻿using Models;
 
-namespace Data.Helpers;
+namespace Utilities;
 
 internal class SeedGenerator
 {

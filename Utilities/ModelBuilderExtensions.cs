@@ -2,16 +2,16 @@
 using Models;
 using Task = Models.Task;
 
-namespace Data.Helpers;
+namespace Utilities;
 
-internal static class ModelBuilderExtensions
+public static class ModelBuilderExtensions
 {
-    internal static void SeedTaskTemplates(this ModelBuilder modelBuilder)
+    public static void SeedTaskTemplates(this ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<TaskTemplate>().HasData(SeedGenerator.GenerateTemplateTasks());
     }
 
-    internal static void ConfigureUsers(this ModelBuilder modelBuilder)
+    public static void ConfigureUsers(this ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
         {
@@ -25,7 +25,7 @@ internal static class ModelBuilderExtensions
         });
     }
 
-    internal static void ConfigureInvitations(this ModelBuilder modelBuilder) 
+    public static void ConfigureInvitations(this ModelBuilder modelBuilder) 
     {
         modelBuilder.Entity<Invitation>(entity =>
         {
@@ -48,7 +48,7 @@ internal static class ModelBuilderExtensions
         });
     }
 
-    internal static void ConfigureTasks(this ModelBuilder modelBuilder)
+    public static void ConfigureTasks(this ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Task>(entity =>
         {
@@ -58,7 +58,7 @@ internal static class ModelBuilderExtensions
         });
     }
 
-    internal static void ConfigureHouseholds(this ModelBuilder modelBuilder)
+    public static void ConfigureHouseholds(this ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Household>(entity =>
         {
