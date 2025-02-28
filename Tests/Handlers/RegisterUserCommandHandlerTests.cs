@@ -30,6 +30,9 @@ public class RegisterUserCommandHandlerTests
 
         _validator = new RegisterUserCommandValidator();
 
+        _context.Database.EnsureDeleted();
+        _context.Database.EnsureCreated();
+
         _handler = new RegisterUserCommandHandler(_context, _passwordHasher, _validator);
     }
 
@@ -122,8 +125,6 @@ public class RegisterUserCommandHandlerTests
     public async Task Handle_ShouldNotRegisterUser_WhenUsernameIsAlreadyTaken(string username1, string username2)
     {
         // Arrange
-        await ClearDatabase();
-
         var user1 = new User()
         {
             Id = Guid.NewGuid(),
@@ -166,7 +167,6 @@ public class RegisterUserCommandHandlerTests
     public async Task Handle_ShouldNotRegisterUser_WhenInvalidUsername(string username, string errorMessage)
     {
         // Arrange
-        await ClearDatabase();
         var command = new RegisterUserCommand("User", null, username, "test@test.com", "Test123!");
 
         // Act
@@ -193,8 +193,8 @@ public class RegisterUserCommandHandlerTests
     public async Task Handle_ShouldNotRegisterUser_WhenInvalidEmail(string email)
     {
         // Arrange
-        await ClearDatabase();
         var command = new RegisterUserCommand("User", null, "user123", email, "Test123!");
+        
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -217,7 +217,6 @@ public class RegisterUserCommandHandlerTests
     public async Task Handle_ShouldNotRegisterUser_WhenInvalidFirstName(string firstName, string errorMessage)
     {
         // Arrange
-        await ClearDatabase();
         var command = new RegisterUserCommand(firstName, null, "TestUser", "test@test.com", "Test123!");
         
         // Act
@@ -240,7 +239,6 @@ public class RegisterUserCommandHandlerTests
     public async Task Handle_ShouldNotRegisterUser_WhenInvalidLastName(string lastName, string errorMessage)
     {
         // Arrange
-        await ClearDatabase();
         var command = new RegisterUserCommand("Test", lastName, "TestUser", "test@test.com", "Test123!");
         
         // Act
@@ -267,7 +265,6 @@ public class RegisterUserCommandHandlerTests
     public async Task Handle_ShouldNotRegisterUser_WhenInvalidPassword(string password, string errorMessage)
     {
         // Arrange
-        await ClearDatabase();
         var command = new RegisterUserCommand("Test", null, "TestUser", "test@test.com", password);
         
         // Act
@@ -278,11 +275,5 @@ public class RegisterUserCommandHandlerTests
         Assert.False(result.IsSuccess);
         Assert.Equal("Register failed", result.Message);
         Assert.Contains(errorMessage, result.ErrorList!);
-    }
-
-    private async Task ClearDatabase()
-    {
-        _context.Users.RemoveRange(_context.Users);
-        await _context.SaveChangesAsync();
     }
 }
