@@ -1,6 +1,8 @@
-﻿namespace Application.Commands.Users.Login;
+﻿using FluentValidation;
 
-public class LoginUserCommandValidator
+namespace Application.Commands.Users.Login;
+
+public class LoginUserCommandValidator : AbstractValidator<LoginUserCommand>
 {
     
 }
