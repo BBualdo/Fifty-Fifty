@@ -15,14 +15,6 @@ public class AccountController : ControllerBase
     [HttpPost("login")]
     public IActionResult Login()
     {
-        // Checking if user exists
-        // Matching password hashes
-        // Updating last login date
-        // Generating JWT token
-        // Generating refresh token
-        // Saving refresh token to database
-        // Returning JWT token and refresh token (200)
-
         return NoContent();
     }
 
