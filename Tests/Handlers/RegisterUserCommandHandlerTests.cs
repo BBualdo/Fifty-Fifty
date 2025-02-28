@@ -28,7 +28,7 @@ public class RegisterUserCommandHandlerTests
         A.CallTo(() => _passwordHasher.HashPassword(An<User>._, A<string>._))
                         .Returns("hashedPassword");
 
-        _validator = new RegisterUserValidator();
+        _validator = new RegisterUserCommandValidator();
 
         _handler = new RegisterUserCommandHandler(_context, _passwordHasher, _validator);
     }

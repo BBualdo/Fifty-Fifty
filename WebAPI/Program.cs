@@ -25,7 +25,7 @@ builder.Services.AddMediatR(config =>
     config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
 // Registering all validators in assembly (not only those for user registering)
-builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommandValidator>();
 
 var app = builder.Build();
 

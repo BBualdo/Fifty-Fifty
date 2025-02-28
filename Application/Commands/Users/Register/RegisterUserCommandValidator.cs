@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace Application.Commands.Users.Register;
 
-public class RegisterUserValidator : AbstractValidator<RegisterUserCommand>
+public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {
-    public RegisterUserValidator()
+    public RegisterUserCommandValidator()
     {
         ConfigureUsernameRules();
         ConfigureEmailRules();
