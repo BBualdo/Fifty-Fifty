@@ -112,7 +112,7 @@ public class RegisterUserCommandHandlerTests
         Assert.NotNull(result);
         Assert.False(result.IsSuccess);
         Assert.Equal("Register failed", result.Message);
-        Assert.Equal("Email is already taken.", result.ErrorList!.First());
+        Assert.Equal("Email is already taken.", result.Errors!.First());
 
         var usersWithSameEmail = await _context.Users.Where(u => u.Email == "user1@test.com").CountAsync();
         Assert.Equal(1, usersWithSameEmail);
@@ -146,7 +146,7 @@ public class RegisterUserCommandHandlerTests
         Assert.NotNull(result);
         Assert.False(result.IsSuccess);
         Assert.Equal("Register failed", result.Message);
-        Assert.Equal("Username is already taken.", result.ErrorList!.First());
+        Assert.Equal("Username is already taken.", result.Errors!.First());
 
         var usersWithSameUsername = await _context.Users.Where(u => u.Username == username1.Trim().ToLower()).CountAsync();
         Assert.Equal(1, usersWithSameUsername);
@@ -176,7 +176,7 @@ public class RegisterUserCommandHandlerTests
         Assert.NotNull(result);
         Assert.False(result.IsSuccess);
         Assert.Equal("Register failed", result.Message);
-        Assert.Contains(errorMessage, result.ErrorList!);
+        Assert.Contains(errorMessage, result.Errors!);
     }
 
     [Theory]
@@ -202,7 +202,7 @@ public class RegisterUserCommandHandlerTests
         Assert.NotNull(result);
         Assert.False(result.IsSuccess);
         Assert.Equal("Register failed", result.Message);
-        Assert.Contains("Invalid email address.", result.ErrorList!.First());
+        Assert.Contains("Invalid email address.", result.Errors!.First());
     }
 
     [Theory]
@@ -226,7 +226,7 @@ public class RegisterUserCommandHandlerTests
         Assert.NotNull(result);
         Assert.False(result.IsSuccess);
         Assert.Equal("Register failed", result.Message);
-        Assert.Contains(errorMessage, result.ErrorList!);
+        Assert.Contains(errorMessage, result.Errors!);
     }
 
     [Theory]
@@ -248,7 +248,7 @@ public class RegisterUserCommandHandlerTests
         Assert.NotNull(result);
         Assert.False(result.IsSuccess);
         Assert.Equal("Register failed", result.Message);
-        Assert.Contains(errorMessage, result.ErrorList!);
+        Assert.Contains(errorMessage, result.Errors!);
     }
 
     [Theory]
@@ -274,6 +274,6 @@ public class RegisterUserCommandHandlerTests
         Assert.NotNull(result);
         Assert.False(result.IsSuccess);
         Assert.Equal("Register failed", result.Message);
-        Assert.Contains(errorMessage, result.ErrorList!);
+        Assert.Contains(errorMessage, result.Errors!);
     }
 }

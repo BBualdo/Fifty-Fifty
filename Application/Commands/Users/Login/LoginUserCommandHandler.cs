@@ -9,17 +9,17 @@ using Services;
 
 namespace Application.Commands.Users.Login;
 
-public class LoginUserCommandHandler(AppDbContext context, IPasswordHasher<User> passwordHasher, IValidator<LoginUserCommand> validator, IJwtService jwtService) : IRequestHandler<LoginUserCommand, ValidationResult>
+public class LoginUserCommandHandler(AppDbContext context, IPasswordHasher<User> passwordHasher, IValidator<LoginUserCommand> validator, IJwtService jwtService) : IRequestHandler<LoginUserCommand, Result<TokenResponseDto>>
 {
     private readonly AppDbContext _context = context;
     private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
     private readonly IValidator<LoginUserCommand> _validator = validator;
     private readonly IJwtService _jwtService = jwtService;
     
-    public async Task<ValidationResult> Handle(LoginUserCommand request, CancellationToken cancellationToken)
+    public async Task<Result<TokenResponseDto>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
         // Checking if user exists
-        // Matching password hashes
+        
         User? user = null;
         
         if (request.Username != null)
@@ -28,12 +28,13 @@ public class LoginUserCommandHandler(AppDbContext context, IPasswordHasher<User>
             user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
         
         if (user == null) 
-            return new ValidationResult("Login attempt failed", ["Username or email is invalid."]);
+            return Result<TokenResponseDto>.Failure("Login attempt failed", ["Username or email is invalid."]);
         
+        // Matching password hashes
         var passwordResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
         
         if (passwordResult != PasswordVerificationResult.Success)
-            return new ValidationResult("Login attempt failed", ["Invalid password."]);
+            return Result<TokenResponseDto>.Failure("Login attempt failed", ["Invalid password."]);
         
         // Updating last login date
         user.LastLoginAt = DateTime.UtcNow;
@@ -51,6 +52,6 @@ public class LoginUserCommandHandler(AppDbContext context, IPasswordHasher<User>
         await _context.SaveChangesAsync(cancellationToken);
         
         // Returning JWT token and refresh token (200)
-        return new ValidationResult();
+        return Result<TokenResponseDto>.Success(new TokenResponseDto(jwtToken, refreshToken.Token), "User logged in successfully");
     }
 }

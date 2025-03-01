@@ -65,10 +65,6 @@ public class LoginUserCommandHandlerTests
         
         // Assert
         Assert.True(result.IsSuccess);
-        
-        var passwordVerificationResult = _passwordHasher.VerifyHashedPassword(_dummyUser, _dummyUser.PasswordHash, command.Password);
-        Assert.Equal(PasswordVerificationResult.Success, passwordVerificationResult);
-        
         var userAfterLogin = await _context.Users.FindAsync(_dummyUser.Id);
         Assert.NotNull(userAfterLogin?.LastLoginAt);
     }
@@ -85,8 +81,8 @@ public class LoginUserCommandHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Login attempt failed", result.Message);
-        Assert.NotNull(result.ErrorList);
-        Assert.Contains("Username or email is invalid.", result.ErrorList);
+        Assert.NotNull(result.Errors);
+        Assert.Contains("Username or email is invalid.", result.Errors);
     }
 
     [Fact]
@@ -103,11 +99,8 @@ public class LoginUserCommandHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Login attempt failed", result.Message);
-        Assert.NotNull(result.ErrorList);
-        Assert.Contains("Invalid password.", result.ErrorList);
-        
-        var passwordVerificationResult = _passwordHasher.VerifyHashedPassword(_dummyUser, _dummyUser.PasswordHash, command.Password);
-        Assert.Equal(PasswordVerificationResult.Failed, passwordVerificationResult);
+        Assert.NotNull(result.Errors);
+        Assert.Contains("Invalid password.", result.Errors);
     }
 
     [Fact]

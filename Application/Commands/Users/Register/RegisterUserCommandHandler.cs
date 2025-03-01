@@ -9,23 +9,23 @@ using Utilities;
 
 namespace Application.Commands.Users.Register;
 
-public class RegisterUserCommandHandler(AppDbContext context, IPasswordHasher<User> passwordHasher, IValidator<RegisterUserCommand> validator) : IRequestHandler<RegisterUserCommand, ValidationResult>
+public class RegisterUserCommandHandler(AppDbContext context, IPasswordHasher<User> passwordHasher, IValidator<RegisterUserCommand> validator) : IRequestHandler<RegisterUserCommand, Result<Guid>>
 {
     private readonly AppDbContext _context = context;
     private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
     private readonly IValidator<RegisterUserCommand> _validator = validator;
 
-    public async Task<ValidationResult> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
-            return new ValidationResult("Register failed", validationResult.Errors.Select(e => e.ErrorMessage));
+            return Result<Guid>.Failure("Register failed", validationResult.Errors.Select(e => e.ErrorMessage));
 
         if (await _context.Users.AnyAsync(u => u.Email == request.Email, cancellationToken))
-            return new ValidationResult("Register failed", ["Email is already taken."]);
+            return Result<Guid>.Failure("Register failed", ["Email is already taken."]);
 
         if (await _context.Users.AnyAsync(u => u.Username.Trim().ToLower() == request.Username.Trim().ToLower(), cancellationToken))
-            return new ValidationResult("Register failed", ["Username is already taken."]);
+            return Result<Guid>.Failure("Register failed", ["Username is already taken."]);
 
         var user = new User
         {
@@ -40,6 +40,6 @@ public class RegisterUserCommandHandler(AppDbContext context, IPasswordHasher<Us
         await _context.Users.AddAsync(user, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new ValidationResult();
+        return Result<Guid>.Success(user.Id, "User registered successfully");
     }
 }
