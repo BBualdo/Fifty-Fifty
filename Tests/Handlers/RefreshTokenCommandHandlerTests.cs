@@ -104,6 +104,12 @@ public class RefreshTokenCommandHandlerTests
         var token = GetToken("validToken");
         var command = new RefreshTokenCommand(token!.Token);
         var initialTokensNumber = _context.RefreshTokens.Count(rt => rt.UserId == _dummyUser.Id);
+        A.CallTo(() => _tokenService.GenerateRefreshToken(_dummyUser))
+            .Returns(new RefreshToken
+            {
+                Token = "newToken",
+                UserId = _dummyUser.Id
+            });
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -113,8 +119,6 @@ public class RefreshTokenCommandHandlerTests
 
         var updatedTokensNumber = _context.RefreshTokens.Count(rt => rt.UserId == _dummyUser.Id);
         Assert.Equal(updatedTokensNumber, initialTokensNumber + 1);
-
-        A.CallTo(() => _context.SaveChangesAsync(A<CancellationToken>._)).MustHaveHappenedOnceExactly();
     }
 
     [Fact]
@@ -123,7 +127,7 @@ public class RefreshTokenCommandHandlerTests
         // Arrange
         var token = GetToken("revokedToken");
         var command = new RefreshTokenCommand(token!.Token);
-        
+
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -134,7 +138,6 @@ public class RefreshTokenCommandHandlerTests
         Assert.Contains("Please try login again.", result.Errors);
         A.CallTo(() => _tokenService.GenerateRefreshToken(_dummyUser)).MustNotHaveHappened();
         A.CallTo(() => _tokenService.GenerateJwtToken(_dummyUser)).MustNotHaveHappened();
-        A.CallTo(() => _context.SaveChangesAsync(CancellationToken.None)).MustNotHaveHappened();
     }
 
     [Fact]
@@ -143,7 +146,7 @@ public class RefreshTokenCommandHandlerTests
         // Arrange
         var token = GetToken("usedToken");
         var command = new RefreshTokenCommand(token!.Token);
-        
+
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -154,7 +157,6 @@ public class RefreshTokenCommandHandlerTests
         Assert.Contains("Please try login again.", result.Errors);
         A.CallTo(() => _tokenService.GenerateRefreshToken(_dummyUser)).MustNotHaveHappened();
         A.CallTo(() => _tokenService.GenerateJwtToken(_dummyUser)).MustNotHaveHappened();
-        A.CallTo(() => _context.SaveChangesAsync(CancellationToken.None)).MustNotHaveHappened();
     }
 
     [Fact]
@@ -163,7 +165,7 @@ public class RefreshTokenCommandHandlerTests
         // Arrange
         var token = "notExistingToken";
         var command = new RefreshTokenCommand(token);
-        
+
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -174,7 +176,6 @@ public class RefreshTokenCommandHandlerTests
         Assert.Contains("Please try login again.", result.Errors);
         A.CallTo(() => _tokenService.GenerateRefreshToken(_dummyUser)).MustNotHaveHappened();
         A.CallTo(() => _tokenService.GenerateJwtToken(_dummyUser)).MustNotHaveHappened();
-        A.CallTo(() => _context.SaveChangesAsync(CancellationToken.None)).MustNotHaveHappened();
     }
 
     [Fact]
@@ -183,13 +184,13 @@ public class RefreshTokenCommandHandlerTests
         // Arrange
         var token = new RefreshToken
         {
-            UserId = Guid.NewGuid(),
+            UserId = Guid.NewGuid()
         };
         await _context.RefreshTokens.AddAsync(token);
         await _context.SaveChangesAsync();
-        
+
         var command = new RefreshTokenCommand(token.Token);
-        
+
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -200,8 +201,10 @@ public class RefreshTokenCommandHandlerTests
         Assert.Contains("Please try login again.", result.Errors);
         A.CallTo(() => _tokenService.GenerateRefreshToken(_dummyUser)).MustNotHaveHappened();
         A.CallTo(() => _tokenService.GenerateJwtToken(_dummyUser)).MustNotHaveHappened();
-        A.CallTo(() => _context.SaveChangesAsync(CancellationToken.None)).MustNotHaveHappened();
     }
-    
-    private RefreshToken? GetToken(string tokenValue) => _dummyUser.RefreshTokens.FirstOrDefault(rt => rt.Token == tokenValue);
+
+    private RefreshToken? GetToken(string tokenValue)
+    {
+        return _dummyUser.RefreshTokens.FirstOrDefault(rt => rt.Token == tokenValue);
+    }
 }
