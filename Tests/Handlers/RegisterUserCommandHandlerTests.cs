@@ -20,7 +20,7 @@ public class RegisterUserCommandHandlerTests
     public RegisterUserCommandHandlerTests()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase("TestDb")
+            .UseInMemoryDatabase("RegisterUserCommandHandlerTests")
             .Options;
         _context = new AppDbContext(options);
 

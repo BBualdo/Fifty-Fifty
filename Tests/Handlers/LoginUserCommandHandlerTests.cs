@@ -20,7 +20,7 @@ public class LoginUserCommandHandlerTests
 
     public LoginUserCommandHandlerTests()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("TestDB").Options;
+        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("LoginUserCommandHandlerTests").Options;
         _context = new AppDbContext(options);
 
         _passwordHasher = A.Fake<IPasswordHasher<User>>();

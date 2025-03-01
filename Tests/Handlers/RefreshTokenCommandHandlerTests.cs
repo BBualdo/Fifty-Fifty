@@ -18,7 +18,7 @@ public class RefreshTokenCommandHandlerTests
 
     public RefreshTokenCommandHandlerTests()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("TestDB").Options;
+        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("RefreshTokenCommandHandlerTests").Options;
         _context = new AppDbContext(options);
         _tokenService = A.Fake<ITokenService>();
 
