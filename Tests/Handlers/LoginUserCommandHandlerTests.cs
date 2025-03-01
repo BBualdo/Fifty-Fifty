@@ -19,6 +19,8 @@ public class LoginUserCommandHandlerTests
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IJwtService _jwtService;
 
+    private readonly User _dummyUser;
+
     public LoginUserCommandHandlerTests()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("TestDB").Options;
@@ -36,6 +38,16 @@ public class LoginUserCommandHandlerTests
         _context.Database.EnsureCreated();
 
         _handler = new LoginUserCommandHandler(_context, _passwordHasher, _validator, _jwtService);
+        
+        _dummyUser = new User()
+        {
+            Id = Guid.NewGuid(),
+            Email = "test@email.com",
+            Username = "BBualdo",
+            PasswordHash = "hashedPassword"
+        };
+        _context.Users.Add(_dummyUser);
+        _context.SaveChanges();
     }
 
     [Theory]
@@ -44,18 +56,8 @@ public class LoginUserCommandHandlerTests
     public async Task Handle_ShouldLoginUser_WhenDataIsValid(string? username, string? email)
     {
         // Arrange
-        var userBeforeLogin = new User()
-        {
-            Id = Guid.NewGuid(),
-            Email = "test@email.com",
-            Username = "BBualdo",
-            PasswordHash = "hashedPassword"
-        };
-        await _context.Users.AddAsync(userBeforeLogin);
-        await _context.SaveChangesAsync();
-        
         var command = new LoginUserCommand(username, email, "Test123!");
-        A.CallTo(() => _passwordHasher.VerifyHashedPassword(userBeforeLogin, userBeforeLogin.PasswordHash, command.Password))
+        A.CallTo(() => _passwordHasher.VerifyHashedPassword(_dummyUser, _dummyUser.PasswordHash, command.Password))
             .Returns(PasswordVerificationResult.Success);
         
         // Act
@@ -64,10 +66,10 @@ public class LoginUserCommandHandlerTests
         // Assert
         Assert.True(result.IsSuccess);
         
-        var passwordVerificationResult = _passwordHasher.VerifyHashedPassword(userBeforeLogin, userBeforeLogin.PasswordHash, command.Password);
+        var passwordVerificationResult = _passwordHasher.VerifyHashedPassword(_dummyUser, _dummyUser.PasswordHash, command.Password);
         Assert.Equal(PasswordVerificationResult.Success, passwordVerificationResult);
         
-        var userAfterLogin = await _context.Users.FindAsync(userBeforeLogin.Id);
+        var userAfterLogin = await _context.Users.FindAsync(_dummyUser.Id);
         Assert.NotNull(userAfterLogin?.LastLoginAt);
     }
 
@@ -75,16 +77,6 @@ public class LoginUserCommandHandlerTests
     public async Task Handle_ShouldNotLoginUser_WhenUsernameAndEmailAreBothNull()
     {
         // Arrange
-        var userBeforeLogin = new User()
-        {
-            Id = Guid.NewGuid(),
-            Email = "test@email.com",
-            Username = "BBualdo",
-            PasswordHash = "hashedPassword"
-        };
-        await _context.Users.AddAsync(userBeforeLogin);
-        await _context.SaveChangesAsync();
-        
         var command = new LoginUserCommand(null, null, "Test123!");
         
         // Act
@@ -101,18 +93,8 @@ public class LoginUserCommandHandlerTests
     public async Task Handle_ShouldNotLoginUser_WhenPasswordIsInvalid()
     {
         // Arrange
-        var userBeforeLogin = new User()
-        {
-            Id = Guid.NewGuid(),
-            Email = "test@email.com",
-            Username = "BBualdo",
-            PasswordHash = "hashedPassword"
-        };
-        await _context.Users.AddAsync(userBeforeLogin);
-        await _context.SaveChangesAsync();
-        
         var command = new LoginUserCommand(null, "test@email.com", "Test123");
-        A.CallTo(() => _passwordHasher.VerifyHashedPassword(userBeforeLogin, userBeforeLogin.PasswordHash, command.Password))
+        A.CallTo(() => _passwordHasher.VerifyHashedPassword(_dummyUser, _dummyUser.PasswordHash, command.Password))
             .Returns(PasswordVerificationResult.Failed);
         
         // Act
@@ -124,7 +106,7 @@ public class LoginUserCommandHandlerTests
         Assert.NotNull(result.ErrorList);
         Assert.Contains("Invalid password.", result.ErrorList);
         
-        var passwordVerificationResult = _passwordHasher.VerifyHashedPassword(userBeforeLogin, userBeforeLogin.PasswordHash, command.Password);
+        var passwordVerificationResult = _passwordHasher.VerifyHashedPassword(_dummyUser, _dummyUser.PasswordHash, command.Password);
         Assert.Equal(PasswordVerificationResult.Failed, passwordVerificationResult);
     }
 
@@ -132,27 +114,43 @@ public class LoginUserCommandHandlerTests
     public async Task Handle_ShouldGenerateJwtToken_WhenLoginSuccessful()
     {
         // Arrange
-        
+        var command = new LoginUserCommand(null, "test@email.com", "Test123!");
+        A.CallTo(() => _passwordHasher.VerifyHashedPassword(_dummyUser, _dummyUser.PasswordHash, command.Password))
+            .Returns(PasswordVerificationResult.Success);
         
         // Act
-        
+        var result = await _handler.Handle(command, CancellationToken.None);
         
         // Assert
-
-        throw new NotImplementedException();
+        Assert.True(result.IsSuccess);
+        A.CallTo(() => _jwtService.GenerateToken(_dummyUser))
+            .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
     public async Task Handle_ShouldGenerateAndStoreRefreshToken_WhenLoginSuccessful()
     {
         // Arrange
+        var command = new LoginUserCommand(null, "test@email.com", "Test123!");
+        A.CallTo(() => _passwordHasher.VerifyHashedPassword(_dummyUser, _dummyUser.PasswordHash, command.Password))
+            .Returns(PasswordVerificationResult.Success);
         
+        A.CallTo(() => _jwtService.GenerateRefreshToken(_dummyUser))
+            .Returns(new RefreshToken
+            {
+                UserId = _dummyUser.Id,
+            });
+        var initialRefreshTokens = _context.RefreshTokens.Count(rt => rt.UserId == _dummyUser.Id);
         
         // Act
-        
+        var result = await _handler.Handle(command, CancellationToken.None);
         
         // Assert
-
-        throw new NotImplementedException();
+        Assert.True(result.IsSuccess);
+        A.CallTo(() => _jwtService.GenerateRefreshToken((_dummyUser)))
+            .MustHaveHappenedOnceExactly();
+        
+        var refreshTokens = _context.RefreshTokens.Count(rt => rt.UserId == _dummyUser.Id);
+        Assert.Equal(initialRefreshTokens + 1, refreshTokens);
     }
 }

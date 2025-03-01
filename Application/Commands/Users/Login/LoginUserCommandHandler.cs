@@ -41,10 +41,14 @@ public class LoginUserCommandHandler(AppDbContext context, IPasswordHasher<User>
         await _context.SaveChangesAsync(cancellationToken);
         
         // Generating JWT token
+        var jwtToken = _jwtService.GenerateToken(user);
         
         // Generating refresh token
+        var refreshToken = _jwtService.GenerateRefreshToken(user);
         
         // Saving refresh token to database
+        await _context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
         
         // Returning JWT token and refresh token (200)
         return new ValidationResult();
