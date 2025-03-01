@@ -21,19 +21,13 @@ public class AccountController : ControllerBase
     [HttpPost("refresh")]
     public IActionResult Refresh()
     {
-        // Checking if refresh token exists, is valid, not user or revoked and belongs to user
-        // Setting refresh token as used
-        // Generating new refresh token
-        // Saving it to database
-        // Generating new JWT token
-        // Returning new JWT token and refresh token (200)
         return NoContent();
     }
 
     [HttpPost("logout")]
     public IActionResult Logout()
     {
-        // Checking if refresh token exists, is valid, not user or revoked and belongs to user
+        // Checking if refresh token exists, is valid, not used or revoked and belongs to user
         // Setting refresh token as revoked
         // Returning 204 No Content status code
         return NoContent();

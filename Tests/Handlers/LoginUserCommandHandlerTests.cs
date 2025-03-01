@@ -1,8 +1,6 @@
 ﻿using Application.Commands.Users.Login;
 using Data;
-using DTOs;
 using FakeItEasy;
-using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Models;
