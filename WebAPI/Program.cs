@@ -30,7 +30,7 @@ builder.Services.AddMediatR(config =>
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommandValidator>();
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 var app = builder.Build();
 

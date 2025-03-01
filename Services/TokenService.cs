@@ -9,11 +9,11 @@ using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegiste
 
 namespace Services;
 
-public class JwtService(JwtSettings jwtSettings) : IJwtService
+public class TokenService(JwtSettings jwtSettings) : ITokenService
 {
     private readonly JwtSettings _jwtSettings = jwtSettings;
     
-    public string GenerateToken(User user)
+    public string GenerateJwtToken(User user)
     {
         var claims = new List<Claim>
         {

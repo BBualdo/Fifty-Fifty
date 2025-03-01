@@ -2,8 +2,8 @@
 
 namespace Services;
    
-public interface IJwtService
+public interface ITokenService
 {
-    string GenerateToken(User user);
+    string GenerateJwtToken(User user);
     RefreshToken GenerateRefreshToken(User user);
 }

@@ -17,16 +17,18 @@ public class RegisterUserCommandHandler(AppDbContext context, IPasswordHasher<Us
 
     public async Task<Result<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
+        // Checks if user information are formatted properly
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
             return Result<Guid>.Failure("Register failed", validationResult.Errors.Select(e => e.ErrorMessage));
-
+        
+        // Checks for username and email duplicates
         if (await _context.Users.AnyAsync(u => u.Email == request.Email, cancellationToken))
             return Result<Guid>.Failure("Register failed", ["Email is already taken."]);
-
         if (await _context.Users.AnyAsync(u => u.Username.Trim().ToLower() == request.Username.Trim().ToLower(), cancellationToken))
             return Result<Guid>.Failure("Register failed", ["Username is already taken."]);
-
+        
+        // Creates new user and saves it to database
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -40,6 +42,7 @@ public class RegisterUserCommandHandler(AppDbContext context, IPasswordHasher<Us
         await _context.Users.AddAsync(user, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Returns created user ID
         return Result<Guid>.Success(user.Id, "User registered successfully");
     }
 }

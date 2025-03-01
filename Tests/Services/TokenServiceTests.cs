@@ -5,12 +5,12 @@ using Services;
 
 namespace Tests.Services;
 
-public class JwtServiceTests
+public class TokenServiceTests
 {
-    private readonly JwtService _jwtService;
+    private readonly TokenService _tokenService;
     private readonly JwtSettings _jwtSettings;
     
-    public JwtServiceTests()
+    public TokenServiceTests()
     {
         _jwtSettings = new JwtSettings
         {
@@ -20,7 +20,7 @@ public class JwtServiceTests
             ExpirationMinutes = 30,
         };
 
-        _jwtService = new JwtService(_jwtSettings);
+        _tokenService = new TokenService(_jwtSettings);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class JwtServiceTests
         };
         
         // Act
-        var token = _jwtService.GenerateToken(user);
+        var token = _tokenService.GenerateJwtToken(user);
 
         // Assert
         Assert.NotNull(token);
@@ -70,7 +70,7 @@ public class JwtServiceTests
         
         // Act
         for (var i = 0; i < iterationCount; i++)
-            tokens.Add(_jwtService.GenerateRefreshToken(user).Token);  
+            tokens.Add(_tokenService.GenerateRefreshToken(user).Token);  
         
         // Assert
         Assert.NotEmpty(tokens);

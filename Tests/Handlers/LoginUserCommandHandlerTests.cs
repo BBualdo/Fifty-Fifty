@@ -15,9 +15,8 @@ public class LoginUserCommandHandlerTests
 {
     private readonly AppDbContext _context;
     private readonly LoginUserCommandHandler _handler;
-    private readonly IValidator<LoginUserCommand> _validator;
     private readonly IPasswordHasher<User> _passwordHasher;
-    private readonly IJwtService _jwtService;
+    private readonly ITokenService _tokenService;
 
     private readonly User _dummyUser;
 
@@ -29,15 +28,13 @@ public class LoginUserCommandHandlerTests
         _passwordHasher = A.Fake<IPasswordHasher<User>>();
         A.CallTo(() => _passwordHasher.HashPassword(A<User>._, A<string>._))
             .Returns("hashedPassword");
-        
-        _validator = new LoginUserCommandValidator();
 
-        _jwtService = A.Fake<IJwtService>();
+        _tokenService = A.Fake<ITokenService>();
         
         _context.Database.EnsureDeleted();
         _context.Database.EnsureCreated();
 
-        _handler = new LoginUserCommandHandler(_context, _passwordHasher, _validator, _jwtService);
+        _handler = new LoginUserCommandHandler(_context, _passwordHasher, _tokenService);
         
         _dummyUser = new User()
         {
@@ -67,6 +64,23 @@ public class LoginUserCommandHandlerTests
         Assert.True(result.IsSuccess);
         var userAfterLogin = await _context.Users.FindAsync(_dummyUser.Id);
         Assert.NotNull(userAfterLogin?.LastLoginAt);
+    }
+
+    [Theory]
+    [InlineData("Test", null)]
+    [InlineData(null, "test@test.com")]
+    public async Task Handle_ShouldNotRegisterUser_WhenDataIsNotValid(string? username, string? email)
+    {
+        // Arrange
+        var command = new LoginUserCommand(username, email, "Test123!");
+        
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Login attempt failed", result.Message);
+        Assert.Contains("Username or email is invalid.", result.Errors!);
     }
 
     [Fact]
@@ -116,7 +130,7 @@ public class LoginUserCommandHandlerTests
         
         // Assert
         Assert.True(result.IsSuccess);
-        A.CallTo(() => _jwtService.GenerateToken(_dummyUser))
+        A.CallTo(() => _tokenService.GenerateJwtToken(_dummyUser))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -128,7 +142,7 @@ public class LoginUserCommandHandlerTests
         A.CallTo(() => _passwordHasher.VerifyHashedPassword(_dummyUser, _dummyUser.PasswordHash, command.Password))
             .Returns(PasswordVerificationResult.Success);
         
-        A.CallTo(() => _jwtService.GenerateRefreshToken(_dummyUser))
+        A.CallTo(() => _tokenService.GenerateRefreshToken(_dummyUser))
             .Returns(new RefreshToken
             {
                 UserId = _dummyUser.Id,
@@ -140,7 +154,7 @@ public class LoginUserCommandHandlerTests
         
         // Assert
         Assert.True(result.IsSuccess);
-        A.CallTo(() => _jwtService.GenerateRefreshToken((_dummyUser)))
+        A.CallTo(() => _tokenService.GenerateRefreshToken((_dummyUser)))
             .MustHaveHappenedOnceExactly();
         
         var refreshTokens = _context.RefreshTokens.Count(rt => rt.UserId == _dummyUser.Id);
