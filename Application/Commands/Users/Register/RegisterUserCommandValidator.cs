@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using FluentValidation;
+using Utilities;
 
 namespace Application.Commands.Users.Register;
 
@@ -7,32 +8,14 @@ public class RegisterUserCommandValidator : AbstractValidator<RegisterUserComman
 {
     public RegisterUserCommandValidator()
     {
-        ConfigureUsernameRules();
-        ConfigureEmailRules();
+        RuleFor(u => u.Username)
+            .UsernameRules();
+        RuleFor(u => u.Email)
+            .EmailRules();
         ConfigureFirstNameRules();
         ConfigureLastNameRules();
-        ConfigurePasswordRules();
-    }
-
-    private void ConfigureUsernameRules()
-    {
-        RuleFor(x => x.Username)
-            .NotEmpty().WithMessage("Username can't be empty.")
-            .MinimumLength(4).WithMessage("Username must be at least 4 characters long.")
-            .MaximumLength(32).WithMessage("Username can't be longer than 32 characters.")
-            .Must(username => Regex.IsMatch(username.Trim(), "^[a-zA-Z0-9_]*$"))
-            .WithMessage("Username can only contain letters, numbers and underscores.")
-            .Must(username => !username.Trim().Contains(' '))
-            .WithMessage("Username can't contain spaces.")
-            .Must(username => !username.All(char.IsDigit))
-            .WithMessage("Username can't contain only numbers.");
-    }
-
-    private void ConfigureEmailRules()
-    {
-        RuleFor(u => u.Email)
-            .Matches(@"^(?!.*\.\.)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-            .WithMessage("Invalid email address.");
+        RuleFor(u => u.Password)
+            .PasswordRules();
     }
 
     private void ConfigureFirstNameRules()
@@ -51,30 +34,5 @@ public class RegisterUserCommandValidator : AbstractValidator<RegisterUserComman
             .MaximumLength(32).WithMessage("Last name can't be longer than 32 characters.")
             .Must(lastName => lastName.All(char.IsLetter)).WithMessage("Last name can only contain letters.")
             .When(u => !string.IsNullOrEmpty(u.LastName));
-    }
-
-    private void ConfigurePasswordRules()
-    {
-        RuleFor(u => u.Password)
-            .NotEmpty().WithMessage("Password can't be empty.")
-            .MinimumLength(6).WithMessage("Password must be at least 6 characters long.")
-            .MaximumLength(32).WithMessage("Password can't be longer than 32 characters.")
-            .Custom((password, context) =>
-            {
-                if (!password.Any(char.IsDigit))
-                    context.AddFailure("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
-                
-                if (!password.Any(char.IsLetter))
-                    context.AddFailure("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
-                
-                if (!password.Any(char.IsUpper))
-                    context.AddFailure("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
-                
-                if (!password.Any(char.IsLower))
-                    context.AddFailure("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
-                
-                if (password.All(char.IsLetterOrDigit))
-                    context.AddFailure("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
-            });
     }
 }
