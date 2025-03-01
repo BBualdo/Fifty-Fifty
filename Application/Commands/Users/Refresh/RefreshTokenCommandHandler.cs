@@ -1,6 +1,7 @@
 ﻿using Data;
 using DTOs;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Services;
 
 namespace Application.Commands.Users.Refresh;
@@ -13,29 +14,28 @@ public class RefreshTokenCommandHandler(AppDbContext context, ITokenService toke
 
     public async Task<Result<TokenResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        // Checking if refresh token exists, is valid, not used or revoked and belongs to user
-        var refreshToken = _context.RefreshTokens.SingleOrDefault(t => t.Token == request.RefreshToken);
+        // Checks if refresh token exists, is valid, not used or revoked and belongs to user
+        var refreshToken = _context.RefreshTokens
+            .Include(rt => rt.User)
+            .FirstOrDefault(rt => rt.Token == request.RefreshToken);
+        
         if (refreshToken == null || refreshToken.IsUsed || refreshToken.IsRevoked)
             return Result<TokenResponseDto>.Failure("Invalid token", ["Please try login again."]);
-        var user = _context.Users.SingleOrDefault(u => u.Id == refreshToken.UserId);
-        if (user == null || refreshToken.UserId != user.Id)
-            return Result<TokenResponseDto>.Failure("Invalid token", ["Please try login again."]);
-        // Setting refresh token as used
+        
+        // Sets refresh token as used
         refreshToken.IsUsed = true;
-        _context.RefreshTokens.Update(refreshToken);
-        await _context.SaveChangesAsync(cancellationToken);
         
-        // Generating new refresh token
-        var freshRefreshToken = _tokenService.GenerateRefreshToken(user);
+        // Generates new refresh token
+        var freshRefreshToken = _tokenService.GenerateRefreshToken(refreshToken.User);
         
-        // Saving it to database
+        // Saves it to database
         await _context.RefreshTokens.AddAsync(freshRefreshToken, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
         
-        // Generating new JWT token
-        var freshJwtToken = _tokenService.GenerateJwtToken(user);
+        // Generates new JWT token
+        var freshJwtToken = _tokenService.GenerateJwtToken(refreshToken.User);
         
-        // Returning new JWT token and refresh token (200)
+        // Returns new JWT token and refresh token
         return Result<TokenResponseDto>.Success(new TokenResponseDto(freshJwtToken, freshRefreshToken.Token), "Token successfully refreshed");
     }
 }
