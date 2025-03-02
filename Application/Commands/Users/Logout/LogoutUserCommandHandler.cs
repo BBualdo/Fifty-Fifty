@@ -12,9 +12,8 @@ public class LogoutUserCommandHandler(AppDbContext context) : IRequestHandler<Lo
     public async Task<Result<bool>> Handle(LogoutUserCommand request, CancellationToken cancellationToken)
     {
         // Checking if refresh token exists, is valid, not used or revoked and belongs to user
-        var refreshToken = _context.RefreshTokens
-            .Include(rt => rt.User)
-            .FirstOrDefault(rt => rt.Token == request.RefreshToken);
+        var refreshToken = await _context.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken, cancellationToken);
         
         if (refreshToken == null)
         {
@@ -22,11 +21,16 @@ public class LogoutUserCommandHandler(AppDbContext context) : IRequestHandler<Lo
         }
         else
         {
+            if (refreshToken.UserId != request.UserId)
+            {
+                // TODO: Log that user used token that doesn't belong to him
+            }
+            
             if (refreshToken.IsRevoked)
             {
                 // TODO: Log that user used revoked token
             }
-
+            
             if (refreshToken.IsUsed)
             {
                 // TODO: Log that user used token that was used before

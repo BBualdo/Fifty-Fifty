@@ -46,7 +46,7 @@ public class LogoutUserCommandHandlerTests
     {
         // Arrange
         var token = GetToken("validToken");
-        var command = new LogoutUserCommand(token!.Token);
+        var command = new LogoutUserCommand(token!.Token, _dummyUser.Id);
         
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -64,7 +64,7 @@ public class LogoutUserCommandHandlerTests
     {
         // Arrange
         var token = GetToken("revokedToken");
-        var command = new LogoutUserCommand(token!.Token);
+        var command = new LogoutUserCommand(token!.Token, _dummyUser.Id);
         
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -79,7 +79,7 @@ public class LogoutUserCommandHandlerTests
     {
         // Arrange
         var token = GetToken("usedToken");
-        var command = new LogoutUserCommand(token!.Token);
+        var command = new LogoutUserCommand(token!.Token, _dummyUser.Id);
         
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -94,7 +94,7 @@ public class LogoutUserCommandHandlerTests
     {
         // Arrange
         var token = GetToken("expiredToken");
-        var command = new LogoutUserCommand(token!.Token);
+        var command = new LogoutUserCommand(token!.Token, _dummyUser.Id);
         
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -109,7 +109,7 @@ public class LogoutUserCommandHandlerTests
     {
         // Arrange
         var token = "notExistingToken";
-        var command = new LogoutUserCommand(token);
+        var command = new LogoutUserCommand(token, _dummyUser.Id);
         
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -130,7 +130,7 @@ public class LogoutUserCommandHandlerTests
         await _context.RefreshTokens.AddAsync(token);
         await _context.SaveChangesAsync();
         
-        var command = new LogoutUserCommand(token.Token);
+        var command = new LogoutUserCommand(token.Token, _dummyUser.Id);
         
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -142,6 +142,6 @@ public class LogoutUserCommandHandlerTests
     
     private RefreshToken? GetToken(string tokenValue)
     {
-        return _dummyUser.RefreshTokens.FirstOrDefault(rt => rt.Token == tokenValue);
+        return _context.RefreshTokens.FirstOrDefault(rt => rt.Token == tokenValue);
     }
 }

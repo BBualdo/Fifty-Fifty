@@ -225,6 +225,6 @@ public class RefreshTokenCommandHandlerTests
 
     private RefreshToken? GetToken(string tokenValue)
     {
-        return _dummyUser.RefreshTokens.FirstOrDefault(rt => rt.Token == tokenValue);
+        return _context.RefreshTokens.FirstOrDefault(rt => rt.Token == tokenValue);
     }
 }
