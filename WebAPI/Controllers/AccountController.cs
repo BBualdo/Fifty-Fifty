@@ -27,9 +27,6 @@ public class AccountController : ControllerBase
     [HttpPost("logout")]
     public IActionResult Logout()
     {
-        // Checking if refresh token exists, is valid, not used or revoked and belongs to user
-        // Setting refresh token as revoked
-        // Returning 204 No Content status code
         return NoContent();
     }
 }
