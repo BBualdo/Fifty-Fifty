@@ -36,6 +36,6 @@ public class RefreshTokenCommandHandler(AppDbContext context, ITokenService toke
         var freshJwtToken = _tokenService.GenerateJwtToken(refreshToken.User);
         
         // Returns new JWT token and refresh token
-        return Result<TokenResponseDto>.Success(new TokenResponseDto(freshJwtToken, freshRefreshToken.Token), "Token successfully refreshed");
+        return Result<TokenResponseDto>.Success(new TokenResponseDto(freshJwtToken.Token, refreshToken.Token, freshJwtToken.ExpiresAt), "Token successfully refreshed");
     }
 }

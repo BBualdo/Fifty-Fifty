@@ -1,9 +1,10 @@
-﻿using Models;
+﻿using DTOs;
+using Models;
 
 namespace Services;
    
 public interface ITokenService
 {
-    string GenerateJwtToken(User user);
+    JwtTokenDto GenerateJwtToken(User user);
     RefreshToken GenerateRefreshToken(User user);
 }

@@ -9,8 +9,8 @@ public class User
     public string FirstName { get; set; } = string.Empty;
     public string? LastName { get; set; }
     public int Score { get; set; } = 0;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? LastLoginAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? LastLoginAt { get; set; }
     public UserRole Role { get; set; } = UserRole.User;
 
     public ICollection<Household> Households { get; set; } = [];

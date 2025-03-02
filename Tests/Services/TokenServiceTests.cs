@@ -36,14 +36,14 @@ public class TokenServiceTests
         };
         
         // Act
-        var token = _tokenService.GenerateJwtToken(user);
+        var jwtTokenDto = _tokenService.GenerateJwtToken(user);
 
         // Assert
-        Assert.NotNull(token);
-        Assert.False(string.IsNullOrEmpty(token));
+        Assert.NotNull(jwtTokenDto.Token);
+        Assert.False(string.IsNullOrEmpty(jwtTokenDto.Token));
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var jwtToken = tokenHandler.ReadJwtToken(token);
+        var jwtToken = tokenHandler.ReadJwtToken(jwtTokenDto.Token);
         
         Assert.Equal(jwtToken.Issuer, _jwtSettings.Issuer);
         Assert.Equal(jwtToken.Audiences.First(), _jwtSettings.Audience);
@@ -51,6 +51,7 @@ public class TokenServiceTests
         Assert.Equal(jwtToken.Claims.First(c => c.Type == "email").Value, user.Email);
         Assert.Equal(jwtToken.Claims.First(c => c.Type == "role").Value, user.Role.ToString());
         Assert.Equal(jwtToken.Claims.First(c => c.Type == "name").Value, user.Username);
+        Assert.NotNull(jwtToken.Claims.First(c => c.Type == "iat").Value);
     }
 
     [Theory]

@@ -28,12 +28,11 @@ public class LoginUserCommandHandler(AppDbContext context, IPasswordHasher<User>
             return Result<TokenResponseDto>.Failure("Login attempt failed", ["Invalid password."]);
         
         // Updates last login date
-        user.LastLoginAt = DateTime.UtcNow;
-        _context.Users.Update(user);
-        await _context.SaveChangesAsync(cancellationToken);
+        user.LastLoginAt = DateTimeOffset.UtcNow;
         
         // Generates JWT token
         var jwtToken = _tokenService.GenerateJwtToken(user);
+        
         // Generates refresh token
         var refreshToken = _tokenService.GenerateRefreshToken(user);
         
@@ -42,6 +41,6 @@ public class LoginUserCommandHandler(AppDbContext context, IPasswordHasher<User>
         await _context.SaveChangesAsync(cancellationToken);
         
         // Returns JWT token and refresh token
-        return Result<TokenResponseDto>.Success(new TokenResponseDto(jwtToken, refreshToken.Token), "User logged in successfully");
+        return Result<TokenResponseDto>.Success(new TokenResponseDto(jwtToken.Token, refreshToken.Token, jwtToken.ExpiresAt), "User logged in successfully");
     }
 }

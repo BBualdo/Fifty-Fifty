@@ -13,7 +13,7 @@ public class TokenService(JwtSettings jwtSettings) : ITokenService
 {
     private readonly JwtSettings _jwtSettings = jwtSettings;
     
-    public string GenerateJwtToken(User user)
+    public JwtTokenDto GenerateJwtToken(User user)
     {
         var claims = new List<Claim>
         {
@@ -21,6 +21,7 @@ public class TokenService(JwtSettings jwtSettings) : ITokenService
             new(JwtRegisteredClaimNames.Email, user.Email),
             new(JwtRegisteredClaimNames.Name, user.Username),
             new("role", user.Role.ToString()),
+            new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         };
         
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
@@ -30,11 +31,13 @@ public class TokenService(JwtSettings jwtSettings) : ITokenService
             issuer: _jwtSettings.Issuer,
             audience: _jwtSettings.Audience,
             claims,
-            expires: DateTime.Now.AddMinutes(_jwtSettings.ExpirationMinutes),
+            expires: DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes),
             signingCredentials: credentials
             );
-        
-        return new JwtSecurityTokenHandler().WriteToken(token);
+
+        var expiresAt = token.Claims.First(c => c.Type == "exp").Value;
+
+        return new JwtTokenDto(new JwtSecurityTokenHandler().WriteToken(token), Convert.ToInt64(expiresAt));
     }
 
     public RefreshToken GenerateRefreshToken(User user)
