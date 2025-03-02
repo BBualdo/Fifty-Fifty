@@ -36,9 +36,10 @@ public class RefreshTokenCommandHandlerTests
             Role = UserRole.User,
             RefreshTokens = new List<RefreshToken>
             {
-                new() { IsRevoked = false, IsUsed = false, Token = "validToken", UserId = userId },
-                new() { IsRevoked = true, IsUsed = false, Token = "revokedToken", UserId = userId },
-                new() { IsRevoked = false, IsUsed = true, Token = "usedToken", UserId = userId }
+                new() { IsRevoked = false, IsUsed = false, ExpiresAt = DateTimeOffset.UtcNow.AddDays(7), Token = "validToken", UserId = userId },
+                new() { IsRevoked = true, IsUsed = false, ExpiresAt = DateTimeOffset.UtcNow.AddDays(7), Token = "revokedToken", UserId = userId },
+                new() { IsRevoked = false, IsUsed = true, ExpiresAt = DateTimeOffset.UtcNow.AddDays(7), Token = "usedToken", UserId = userId },
+                new() { IsRevoked = false, IsUsed = false, ExpiresAt = DateTimeOffset.UtcNow.AddDays(-1), Token = "expiredToken", UserId = userId },
             }
         };
 
@@ -150,6 +151,25 @@ public class RefreshTokenCommandHandlerTests
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Invalid token", result.Message);
+        Assert.NotNull(result.Errors);
+        Assert.Contains("Please try login again.", result.Errors);
+        A.CallTo(() => _tokenService.GenerateRefreshToken(_dummyUser)).MustNotHaveHappened();
+        A.CallTo(() => _tokenService.GenerateJwtToken(_dummyUser)).MustNotHaveHappened();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnError_WhenTokenIsExpired()
+    {
+        // Arrange
+        var token = GetToken("expiredToken");
+        var command = new RefreshTokenCommand(token!.Token);
+        
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+        
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Invalid token", result.Message);

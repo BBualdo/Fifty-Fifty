@@ -14,12 +14,12 @@ public class RefreshTokenCommandHandler(AppDbContext context, ITokenService toke
 
     public async Task<Result<TokenResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        // Checks if refresh token exists, is valid, not used or revoked and belongs to user
+        // Checks if refresh token exists, is valid, not used, revoked or expired and belongs to user
         var refreshToken = _context.RefreshTokens
             .Include(rt => rt.User)
             .FirstOrDefault(rt => rt.Token == request.RefreshToken);
         
-        if (refreshToken == null || refreshToken.IsUsed || refreshToken.IsRevoked)
+        if (refreshToken == null || refreshToken.IsUsed || refreshToken.IsRevoked || refreshToken.ExpiresAt < DateTimeOffset.UtcNow)
             return Result<TokenResponseDto>.Failure("Invalid token", ["Please try login again."]);
         
         // Sets refresh token as used
