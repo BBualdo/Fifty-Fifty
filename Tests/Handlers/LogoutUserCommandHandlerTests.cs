@@ -1,7 +1,7 @@
 ﻿using Application.Commands.Users.Logout;
-using Data;
+using Domain.Entities;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace Tests.Handlers;

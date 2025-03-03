@@ -1,7 +1,5 @@
-﻿using Data;
-using DTOs;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using Shared.DTO;
 
 namespace Application.Commands.Users.Logout;
 

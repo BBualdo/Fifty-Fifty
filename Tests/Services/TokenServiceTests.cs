@@ -1,7 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using DTOs;
-using Models;
-using Services;
+using Domain.Entities;
+using Infrastructure.Services;
+using Shared;
 
 namespace Tests.Services;
 

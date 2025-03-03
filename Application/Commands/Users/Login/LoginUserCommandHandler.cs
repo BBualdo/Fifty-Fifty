@@ -1,11 +1,8 @@
-﻿using Data;
-using DTOs;
-using FluentValidation;
+﻿using Application.Interfaces.Services;
+using Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Models;
-using Services;
+using Shared.DTO;
 
 namespace Application.Commands.Users.Login;
 

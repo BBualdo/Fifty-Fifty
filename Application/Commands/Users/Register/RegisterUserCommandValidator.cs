@@ -1,6 +1,5 @@
-﻿using System.Text.RegularExpressions;
-using FluentValidation;
-using Utilities;
+﻿using FluentValidation;
+using Shared.Extensions;
 
 namespace Application.Commands.Users.Register;
 

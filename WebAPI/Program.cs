@@ -1,12 +1,13 @@
-using Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Models;
 using System.Reflection;
 using FluentValidation;
 using Application.Commands.Users.Register;
-using DTOs;
-using Services;
+using Application.Interfaces.Services;
+using Domain.Entities;
+using Infrastructure;
+using Infrastructure.Services;
+using Shared;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,8 +1,6 @@
-﻿using Data;
-using DTOs;
+﻿using Application.Interfaces.Services;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Services;
+using Shared.DTO;
 
 namespace Application.Commands.Users.Refresh;
 

@@ -1,9 +1,9 @@
 ﻿using Application.Commands.Users.Refresh;
-using Data;
+using Application.Interfaces.Services;
+using Domain.Entities;
 using FakeItEasy;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Models;
-using Services;
 using Task = System.Threading.Tasks.Task;
 
 namespace Tests.Handlers;

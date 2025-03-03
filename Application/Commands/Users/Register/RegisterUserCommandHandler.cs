@@ -1,11 +1,9 @@
-﻿using Data;
-using DTOs;
+﻿using Domain.Entities;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Models;
-using Utilities;
+using Shared.DTO;
+using Shared.Helpers;
 
 namespace Application.Commands.Users.Register;
 

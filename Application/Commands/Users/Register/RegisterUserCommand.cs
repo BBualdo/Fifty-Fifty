@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using DTOs;
+using Shared.DTO;
 
 namespace Application.Commands.Users.Register;
 

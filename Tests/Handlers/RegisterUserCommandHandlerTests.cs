@@ -1,11 +1,11 @@
 ﻿using Application.Commands.Users.Register;
-using Data;
+using Domain.Entities;
 using FakeItEasy;
 using FluentValidation;
+using Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Models;
-using Utilities;
+using Shared.Helpers;
 using Task = System.Threading.Tasks.Task;
 
 namespace Tests.Handlers;

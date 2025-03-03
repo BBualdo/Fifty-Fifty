@@ -1,5 +1,5 @@
-﻿using DTOs;
-using MediatR;
+﻿using MediatR;
+using Shared.DTO;
 
 namespace Application.Commands.Users.Refresh;
 

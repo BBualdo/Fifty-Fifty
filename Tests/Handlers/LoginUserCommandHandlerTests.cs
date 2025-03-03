@@ -1,10 +1,10 @@
 ﻿using Application.Commands.Users.Login;
-using Data;
+using Application.Interfaces.Services;
+using Domain.Entities;
 using FakeItEasy;
+using Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Models;
-using Services;
 using Task = System.Threading.Tasks.Task;
 
 namespace Tests.Handlers;
