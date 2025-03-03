@@ -24,7 +24,7 @@ public class UsersRepository(AppDbContext context) : IUsersRepository
         return await _context.Users.FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
     }
 
-    public async Task<List<User>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IEnumerable<User>> GetAllAsync(CancellationToken cancellationToken)
     {
         return await _context.Users.ToListAsync(cancellationToken);
     }

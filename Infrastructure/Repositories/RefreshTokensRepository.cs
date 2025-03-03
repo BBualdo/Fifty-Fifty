@@ -14,7 +14,7 @@ public class RefreshTokensRepository(AppDbContext context) : IRefreshTokensRepos
         return await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == token, cancellationToken);
     }
 
-    public async Task<List<RefreshToken>> GetAllByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<IEnumerable<RefreshToken>> GetAllByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await _context.RefreshTokens.Where(rt => rt.UserId == userId).ToListAsync(cancellationToken);
     }

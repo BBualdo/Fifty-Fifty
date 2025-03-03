@@ -1,48 +1,54 @@
-﻿using Application.Commands.Users.Login;
+﻿using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
+using Application.UseCases.Commands.Users.Login;
 using Domain.Entities;
 using FakeItEasy;
-using Infrastructure;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Task = System.Threading.Tasks.Task;
 
 namespace Tests.Handlers;
 
 public class LoginUserCommandHandlerTests
 {
-    private readonly AppDbContext _context;
+    private readonly IUsersRepository _usersRepository;
+    private readonly IRefreshTokensRepository _refreshTokensRepository;
     private readonly LoginUserCommandHandler _handler;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly ITokenService _tokenService;
-
+    
     private readonly User _dummyUser;
+    private readonly List<RefreshToken> _refreshTokensStorage;
+    private readonly List<User> _usersStorage;
 
     public LoginUserCommandHandlerTests()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("LoginUserCommandHandlerTests").Options;
-        _context = new AppDbContext(options);
-
         _passwordHasher = A.Fake<IPasswordHasher<User>>();
-        A.CallTo(() => _passwordHasher.HashPassword(A<User>._, A<string>._))
-            .Returns("hashedPassword");
-
         _tokenService = A.Fake<ITokenService>();
+        _usersRepository = A.Fake<IUsersRepository>();
+        _refreshTokensRepository = A.Fake<IRefreshTokensRepository>();
         
-        _context.Database.EnsureDeleted();
-        _context.Database.EnsureCreated();
-
-        _handler = new LoginUserCommandHandler(_context, _passwordHasher, _tokenService);
-        
-        _dummyUser = new User()
+        _dummyUser = new User
         {
             Id = Guid.NewGuid(),
             Email = "test@email.com",
             Username = "BBualdo",
             PasswordHash = "hashedPassword"
         };
-        _context.Users.Add(_dummyUser);
-        _context.SaveChanges();
+
+        _refreshTokensStorage = [];
+        _usersStorage = [ _dummyUser ];
+
+        A.CallTo(() => _usersRepository.GetByEmailAsync(A<string>._, A<CancellationToken>._))
+            .ReturnsLazily((string email, CancellationToken _) => _usersStorage.FirstOrDefault(u => u.Email == email));
+        A.CallTo(() => _usersRepository.GetByUsernameAsync(A<string>._, A<CancellationToken>._))
+            .ReturnsLazily((string username, CancellationToken _) => _usersStorage.FirstOrDefault(u => u.Username == username));
+        A.CallTo(() => _refreshTokensRepository.GetAllByUserIdAsync(_dummyUser.Id, A<CancellationToken>._))
+            .Returns(_refreshTokensStorage);
+        A.CallTo(() => _refreshTokensRepository.AddAsync(A<RefreshToken>._, A<CancellationToken>._))
+            .Invokes((RefreshToken token, CancellationToken _) => _refreshTokensStorage.Add(token));
+        
+        
+        _handler = new LoginUserCommandHandler(_usersRepository, _refreshTokensRepository, _passwordHasher, _tokenService);
     }
 
     [Theory]
@@ -60,14 +66,18 @@ public class LoginUserCommandHandlerTests
         
         // Assert
         Assert.True(result.IsSuccess);
-        var userAfterLogin = await _context.Users.FindAsync(_dummyUser.Id);
-        Assert.NotNull(userAfterLogin?.LastLoginAt);
+        var userAfterLogin = email != null 
+            ? await _usersRepository.GetByEmailAsync(email, CancellationToken.None) : username != null
+            ? await _usersRepository.GetByUsernameAsync(username, CancellationToken.None) : null;
+        
+        Assert.NotNull(userAfterLogin);
+        Assert.NotNull(userAfterLogin.LastLoginAt);
     }
 
     [Theory]
     [InlineData("Test", null)]
     [InlineData(null, "test@test.com")]
-    public async Task Handle_ShouldNotRegisterUser_WhenDataIsNotValid(string? username, string? email)
+    public async Task Handle_ShouldNotLoginUser_WhenDataIsNotValid(string? username, string? email)
     {
         // Arrange
         var command = new LoginUserCommand(username, email, "Test123!");
@@ -141,11 +151,12 @@ public class LoginUserCommandHandlerTests
             .Returns(PasswordVerificationResult.Success);
         
         A.CallTo(() => _tokenService.GenerateRefreshToken(_dummyUser))
-            .Returns(new RefreshToken
-            {
-                UserId = _dummyUser.Id,
-            });
-        var initialRefreshTokens = _context.RefreshTokens.Count(rt => rt.UserId == _dummyUser.Id);
+            .Returns(new RefreshToken { UserId = _dummyUser.Id });
+        
+        A.CallTo(() => _refreshTokensRepository.GetAllByUserIdAsync(_dummyUser.Id, A<CancellationToken>._))
+            .Returns(_dummyUser.RefreshTokens);
+        
+        var initialRefreshTokens = _refreshTokensStorage.Count;
         
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -154,8 +165,9 @@ public class LoginUserCommandHandlerTests
         Assert.True(result.IsSuccess);
         A.CallTo(() => _tokenService.GenerateRefreshToken((_dummyUser)))
             .MustHaveHappenedOnceExactly();
+        A.CallTo(() => _refreshTokensRepository.AddAsync(A<RefreshToken>._, A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
         
-        var refreshTokens = _context.RefreshTokens.Count(rt => rt.UserId == _dummyUser.Id);
-        Assert.Equal(initialRefreshTokens + 1, refreshTokens);
+        Assert.Equal(initialRefreshTokens + 1, _refreshTokensStorage.Count);
     }
 }

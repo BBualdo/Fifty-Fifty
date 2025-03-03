@@ -1,22 +1,26 @@
-﻿using Application.Interfaces.Services;
+﻿using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Shared.DTO;
 
-namespace Application.Commands.Users.Login;
+namespace Application.UseCases.Commands.Users.Login;
 
-public class LoginUserCommandHandler(AppDbContext context, IPasswordHasher<User> passwordHasher, ITokenService tokenService) : IRequestHandler<LoginUserCommand, Result<TokenResponseDto>>
+public class LoginUserCommandHandler(IUsersRepository usersRepository, IRefreshTokensRepository refreshTokensRepository, IPasswordHasher<User> passwordHasher, ITokenService tokenService) : IRequestHandler<LoginUserCommand, Result<TokenResponseDto>>
 {
-    private readonly AppDbContext _context = context;
+    private readonly IUsersRepository _usersRepository = usersRepository;
+    private readonly IRefreshTokensRepository _refreshTokensRepository = refreshTokensRepository;
     private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
     private readonly ITokenService _tokenService = tokenService;
     
     public async Task<Result<TokenResponseDto>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
         // Checks if user exists
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username || u.Email == request.Email, cancellationToken);
-        if (user == null) 
+        var user = request.Email != null 
+                ? await _usersRepository.GetByEmailAsync(request.Email, cancellationToken) : request.Username != null 
+                ? await _usersRepository.GetByUsernameAsync(request.Username, cancellationToken) : null;
+        if (user == null)
             return Result<TokenResponseDto>.Failure("Login attempt failed", ["Username or email is invalid."]);
         
         // Matches password hashes
@@ -34,8 +38,8 @@ public class LoginUserCommandHandler(AppDbContext context, IPasswordHasher<User>
         var refreshToken = _tokenService.GenerateRefreshToken(user);
         
         // Saves refresh token to database
-        await _context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _refreshTokensRepository.AddAsync(refreshToken, cancellationToken);
+        await _refreshTokensRepository.SaveChangesAsync(cancellationToken);
         
         // Returns JWT token and refresh token
         return Result<TokenResponseDto>.Success(new TokenResponseDto(jwtToken.Token, refreshToken.Token, jwtToken.ExpiresAt), "User logged in successfully");
