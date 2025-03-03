@@ -1,10 +1,9 @@
-﻿using Application.Commands.Users.Register;
+﻿using Application.Interfaces.Repositories;
+using Application.UseCases.Commands.Users.Register;
 using Domain.Entities;
 using FakeItEasy;
 using FluentValidation;
-using Infrastructure;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Shared.Helpers;
 using Task = System.Threading.Tasks.Task;
 
@@ -13,27 +12,29 @@ namespace Tests.Handlers;
 public class RegisterUserCommandHandlerTests
 {
     private readonly RegisterUserCommandHandler _handler;
-    private readonly AppDbContext _context;
+    private readonly IUsersRepository _usersRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IValidator<RegisterUserCommand> _validator;
+    
+    private readonly List<User> _usersStorage = [];
 
     public RegisterUserCommandHandlerTests()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase("RegisterUserCommandHandlerTests")
-            .Options;
-        _context = new AppDbContext(options);
-
         _passwordHasher = A.Fake<IPasswordHasher<User>>();
+        _usersRepository = A.Fake<IUsersRepository>();
+        
         A.CallTo(() => _passwordHasher.HashPassword(An<User>._, A<string>._))
                         .Returns("hashedPassword");
-
+        A.CallTo(() => _usersRepository.AddAsync(A<User>._, A<CancellationToken>._))
+            .Invokes((User user, CancellationToken _) => _usersStorage.Add(user));
+        A.CallTo(() => _usersRepository.GetByEmailAsync(A<string>._, A<CancellationToken>._))
+            .ReturnsLazily((string email, CancellationToken _) => _usersStorage.FirstOrDefault(u => u.Email == email));
+        A.CallTo(() => _usersRepository.GetByUsernameAsync(A<string>._, A<CancellationToken>._))
+            .ReturnsLazily((string username, CancellationToken _) => _usersStorage.FirstOrDefault(u => u.Username == username));
+        
+        
         _validator = new RegisterUserCommandValidator();
-
-        _context.Database.EnsureDeleted();
-        _context.Database.EnsureCreated();
-
-        _handler = new RegisterUserCommandHandler(_context, _passwordHasher, _validator);
+        _handler = new RegisterUserCommandHandler(_usersRepository, _passwordHasher, _validator);
     }
 
     [Fact]
@@ -50,7 +51,7 @@ public class RegisterUserCommandHandlerTests
         Assert.NotNull(result);
         Assert.True(result.IsSuccess);
 
-        var addedUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
+        var addedUser = await _usersRepository.GetByEmailAsync(command.Email, CancellationToken.None);
         Assert.NotNull(addedUser);
 
         Assert.Equal(command.FirstName, addedUser.FirstName);
@@ -82,7 +83,7 @@ public class RegisterUserCommandHandlerTests
         Assert.NotNull(result);
         Assert.True(result.IsSuccess);
         
-        var addedUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
+        var addedUser = await _usersRepository.GetByEmailAsync(command.Email, CancellationToken.None);
         Assert.NotNull(addedUser);
         Assert.Equal(HelperFunctions.CapitalizeFirst(command.FirstName), addedUser.FirstName); 
         Assert.Equal(HelperFunctions.CapitalizeFirst(command.LastName), addedUser.LastName);
@@ -100,8 +101,7 @@ public class RegisterUserCommandHandlerTests
             FirstName = "User",
         };
 
-        await _context.Users.AddAsync(user1);
-        await _context.SaveChangesAsync();
+        _usersStorage.Add(user1);
 
         var command = new RegisterUserCommand("User", null, "user2", "user1@test.com", "Test123!");
 
@@ -114,7 +114,7 @@ public class RegisterUserCommandHandlerTests
         Assert.Equal("Register failed", result.Message);
         Assert.Equal("Email is already taken.", result.Errors!.First());
 
-        var usersWithSameEmail = await _context.Users.Where(u => u.Email == "user1@test.com").CountAsync();
+        var usersWithSameEmail = _usersStorage.Count(u => u.Email == command.Email);
         Assert.Equal(1, usersWithSameEmail);
     }
 
@@ -134,8 +134,7 @@ public class RegisterUserCommandHandlerTests
             FirstName = "User",
         };
 
-        await _context.Users.AddAsync(user1);
-        await _context.SaveChangesAsync();
+        _usersStorage.Add(user1);
 
         var command = new RegisterUserCommand("User", null, username2, "user2@test.com", "Test123!");
 
@@ -148,7 +147,7 @@ public class RegisterUserCommandHandlerTests
         Assert.Equal("Register failed", result.Message);
         Assert.Equal("Username is already taken.", result.Errors!.First());
 
-        var usersWithSameUsername = await _context.Users.Where(u => u.Username == username1.Trim().ToLower()).CountAsync();
+        var usersWithSameUsername = _usersStorage.Count(u => u.Username == username1);
         Assert.Equal(1, usersWithSameUsername);
     }
 
