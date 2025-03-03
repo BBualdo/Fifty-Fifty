@@ -22,4 +22,8 @@
       </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\DTOs\DTOs.csproj" />
+    </ItemGroup>
+
 </Project>

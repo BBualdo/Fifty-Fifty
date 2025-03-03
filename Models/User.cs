@@ -1,4 +1,6 @@
-﻿namespace Models;
+﻿using DTOs;
+
+namespace Models;
 
 public class User
 {
@@ -17,4 +19,12 @@ public class User
     public ICollection<Invitation> SentInvitations { get; set; } = [];
     public ICollection<Invitation> ReceivedInvitations { get; set; } = [];
     public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
+}
+
+public static class UserExtensions
+{
+    public static UserDto ToUserDto(this User user)
+    {
+        return new UserDto(user.Id, user.Username, user.Email, user.FirstName, user.LastName, user.Score, user.Role.ToString());
+    }
 }
