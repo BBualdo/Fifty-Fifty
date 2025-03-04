@@ -1,29 +1,25 @@
-﻿using Application.Commands.Users.Refresh;
+﻿using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
+using Application.UseCases.Commands.Users.Refresh;
 using Domain.Entities;
 using FakeItEasy;
-using Infrastructure;
-using Microsoft.EntityFrameworkCore;
 using Task = System.Threading.Tasks.Task;
 
 namespace Tests.Handlers;
 
 public class RefreshTokenCommandHandlerTests
 {
-    private readonly AppDbContext _context;
-
-    private readonly User _dummyUser;
+    private readonly IRefreshTokensRepository _refreshTokensRepository;
     private readonly RefreshTokenCommandHandler _handler;
     private readonly ITokenService _tokenService;
-
+    
+    private readonly User _dummyUser;
+    private readonly List<RefreshToken> _refreshTokensStorage = [];
+    
     public RefreshTokenCommandHandlerTests()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("RefreshTokenCommandHandlerTests").Options;
-        _context = new AppDbContext(options);
+        _refreshTokensRepository = A.Fake<IRefreshTokensRepository>();
         _tokenService = A.Fake<ITokenService>();
-
-        _context.Database.EnsureDeleted();
-        _context.Database.EnsureCreated();
 
         var userId = Guid.NewGuid();
 
@@ -34,19 +30,39 @@ public class RefreshTokenCommandHandlerTests
             Username = "TestUser",
             PasswordHash = "hashedPassword",
             Role = UserRole.User,
-            RefreshTokens = new List<RefreshToken>
-            {
-                new() { IsRevoked = false, IsUsed = false, ExpiresAt = DateTimeOffset.UtcNow.AddDays(7), Token = "validToken", UserId = userId },
-                new() { IsRevoked = true, IsUsed = false, ExpiresAt = DateTimeOffset.UtcNow.AddDays(7), Token = "revokedToken", UserId = userId },
-                new() { IsRevoked = false, IsUsed = true, ExpiresAt = DateTimeOffset.UtcNow.AddDays(7), Token = "usedToken", UserId = userId },
-                new() { IsRevoked = false, IsUsed = false, ExpiresAt = DateTimeOffset.UtcNow.AddDays(-1), Token = "expiredToken", UserId = userId },
-            }
+            RefreshTokens = _refreshTokensStorage
         };
 
-        _context.Users.Add(_dummyUser);
-        _context.SaveChanges();
+        _refreshTokensStorage.AddRange([
+            new RefreshToken
+            {
+                IsRevoked = false, IsUsed = false, ExpiresAt = DateTimeOffset.UtcNow.AddDays(7), Token = "validToken",
+                UserId = userId, User = _dummyUser
+            },
+            new RefreshToken
+            {
+                IsRevoked = true, IsUsed = false, ExpiresAt = DateTimeOffset.UtcNow.AddDays(7), Token = "revokedToken",
+                UserId = userId, User = _dummyUser
+            },
+            new RefreshToken
+            {
+                IsRevoked = false, IsUsed = true, ExpiresAt = DateTimeOffset.UtcNow.AddDays(7), Token = "usedToken",
+                UserId = userId, User = _dummyUser
+            },
+            new RefreshToken
+            {
+                IsRevoked = false, IsUsed = false, ExpiresAt = DateTimeOffset.UtcNow.AddDays(-1),
+                Token = "expiredToken", UserId = userId, User = _dummyUser
+            }
+        ]);
 
-        _handler = new RefreshTokenCommandHandler(_context, _tokenService);
+        A.CallTo(() => _refreshTokensRepository.GetByTokenAsync(A<string>._, A<CancellationToken>._))
+            .ReturnsLazily((string token, CancellationToken _) =>
+                _refreshTokensStorage.FirstOrDefault(t => t.Token == token));
+        A.CallTo(() => _refreshTokensRepository.AddAsync(A<RefreshToken>._, A<CancellationToken>._))
+            .Invokes((RefreshToken token, CancellationToken _) => _refreshTokensStorage.Add(token));
+
+        _handler = new RefreshTokenCommandHandler(_refreshTokensRepository, _tokenService);
     }
 
     [Fact]
@@ -104,7 +120,7 @@ public class RefreshTokenCommandHandlerTests
         // Arrange
         var token = GetToken("validToken");
         var command = new RefreshTokenCommand(token!.Token);
-        var initialTokensNumber = _context.RefreshTokens.Count(rt => rt.UserId == _dummyUser.Id);
+        var initialTokensNumber = _refreshTokensStorage.Count;
         A.CallTo(() => _tokenService.GenerateRefreshToken(_dummyUser))
             .Returns(new RefreshToken
             {
@@ -117,9 +133,7 @@ public class RefreshTokenCommandHandlerTests
 
         // Assert
         Assert.True(result.IsSuccess);
-
-        var updatedTokensNumber = _context.RefreshTokens.Count(rt => rt.UserId == _dummyUser.Id);
-        Assert.Equal(updatedTokensNumber, initialTokensNumber + 1);
+        Assert.Equal(initialTokensNumber + 1, _refreshTokensStorage.Count);
     }
 
     [Fact]
@@ -166,10 +180,10 @@ public class RefreshTokenCommandHandlerTests
         // Arrange
         var token = GetToken("expiredToken");
         var command = new RefreshTokenCommand(token!.Token);
-        
+
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
-        
+
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Invalid token", result.Message);
@@ -206,8 +220,7 @@ public class RefreshTokenCommandHandlerTests
         {
             UserId = Guid.NewGuid()
         };
-        await _context.RefreshTokens.AddAsync(token);
-        await _context.SaveChangesAsync();
+        _refreshTokensStorage.Add(token);
 
         var command = new RefreshTokenCommand(token.Token);
 
@@ -225,6 +238,6 @@ public class RefreshTokenCommandHandlerTests
 
     private RefreshToken? GetToken(string tokenValue)
     {
-        return _context.RefreshTokens.FirstOrDefault(rt => rt.Token == tokenValue);
+        return _refreshTokensStorage.FirstOrDefault(rt => rt.Token == tokenValue);
     }
 }

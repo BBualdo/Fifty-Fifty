@@ -1,21 +1,20 @@
-﻿using Application.Interfaces.Services;
+﻿using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using MediatR;
 using Shared.DTO;
 
-namespace Application.Commands.Users.Refresh;
+namespace Application.UseCases.Commands.Users.Refresh;
 
-public class RefreshTokenCommandHandler(AppDbContext context, ITokenService tokenService)
+public class RefreshTokenCommandHandler(IRefreshTokensRepository refreshTokensRepository, ITokenService tokenService)
     : IRequestHandler<RefreshTokenCommand, Result<TokenResponseDto>>
 {
-    private readonly AppDbContext _context = context;
+    private readonly IRefreshTokensRepository _refreshTokensRepository = refreshTokensRepository;
     private readonly ITokenService _tokenService = tokenService;
 
     public async Task<Result<TokenResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
         // Checks if refresh token exists, is valid, not used, revoked or expired and belongs to user
-        var refreshToken = _context.RefreshTokens
-            .Include(rt => rt.User)
-            .FirstOrDefault(rt => rt.Token == request.RefreshToken);
+        var refreshToken = await _refreshTokensRepository.GetByTokenAsync(request.RefreshToken, cancellationToken);
         
         if (refreshToken == null || refreshToken.IsUsed || refreshToken.IsRevoked || refreshToken.ExpiresAt < DateTimeOffset.UtcNow)
             return Result<TokenResponseDto>.Failure("Invalid token", ["Please try login again."]);
@@ -27,8 +26,8 @@ public class RefreshTokenCommandHandler(AppDbContext context, ITokenService toke
         var freshRefreshToken = _tokenService.GenerateRefreshToken(refreshToken.User);
         
         // Saves it to database
-        await _context.RefreshTokens.AddAsync(freshRefreshToken, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _refreshTokensRepository.AddAsync(freshRefreshToken, cancellationToken);
+        await _refreshTokensRepository.SaveChangesAsync(cancellationToken);
         
         // Generates new JWT token
         var freshJwtToken = _tokenService.GenerateJwtToken(refreshToken.User);
