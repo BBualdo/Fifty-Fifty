@@ -1,17 +1,17 @@
-﻿using MediatR;
+﻿using Application.Interfaces.Repositories;
+using MediatR;
 using Shared.DTO;
 
-namespace Application.Commands.Users.Logout;
+namespace Application.UseCases.Commands.Users.Logout;
 
-public class LogoutUserCommandHandler(AppDbContext context) : IRequestHandler<LogoutUserCommand, Result<bool>>
+public class LogoutUserCommandHandler(IRefreshTokensRepository refreshTokensRepository) : IRequestHandler<LogoutUserCommand, Result<bool>>
 {
-    private readonly AppDbContext _context = context;
+    private readonly IRefreshTokensRepository _refreshTokensRepository = refreshTokensRepository;
     
     public async Task<Result<bool>> Handle(LogoutUserCommand request, CancellationToken cancellationToken)
     {
         // Checking if refresh token exists, is valid, not used or revoked and belongs to user
-        var refreshToken = await _context.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken, cancellationToken);
+        var refreshToken = await _refreshTokensRepository.GetByTokenAsync(request.RefreshToken, cancellationToken);
         
         if (refreshToken == null)
         {
@@ -41,7 +41,7 @@ public class LogoutUserCommandHandler(AppDbContext context) : IRequestHandler<Lo
             
             // Sets refresh token as revoked
             refreshToken.IsRevoked = true;
-            await _context.SaveChangesAsync(cancellationToken);
+            await _refreshTokensRepository.SaveChangesAsync(cancellationToken);
         }
         
         // Returns success anyway to not inform user about any problems
