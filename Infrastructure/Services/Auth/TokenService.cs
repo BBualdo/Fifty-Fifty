@@ -2,13 +2,13 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Application.Interfaces.Services;
+using Application.Interfaces.Services.Auth;
 using Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
 using Shared;
 using Shared.DTO;
 
-namespace Infrastructure.Services;
+namespace Infrastructure.Services.Auth;
 
 public class TokenService(JwtSettings jwtSettings) : ITokenService
 {

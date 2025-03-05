@@ -1,5 +1,5 @@
 ﻿using Application.Interfaces.Repositories;
-using Application.Interfaces.Services;
+using Application.Interfaces.Services.Auth;
 using Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;

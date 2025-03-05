@@ -1,6 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using Domain.Entities;
-using Infrastructure.Services;
+using Infrastructure.Services.Auth;
 using Shared;
 
 namespace Tests.Services;

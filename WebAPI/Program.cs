@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using FluentValidation;
 using Application.Interfaces.Repositories;
-using Application.Interfaces.Services;
+using Application.Interfaces.Services.Auth;
 using Application.UseCases.Commands.Users.Register;
 using Domain.Entities;
 using Infrastructure;
 using Infrastructure.Repositories;
-using Infrastructure.Services;
+using Infrastructure.Services.Auth;
 using Shared;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,6 +36,7 @@ builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<IRefreshTokensRepository, RefreshTokensRepository>();
+builder.Services.AddScoped<IUserContext, UserContext>();
 
 var app = builder.Build();
 

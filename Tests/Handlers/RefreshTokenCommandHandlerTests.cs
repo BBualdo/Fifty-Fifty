@@ -1,5 +1,5 @@
 ﻿using Application.Interfaces.Repositories;
-using Application.Interfaces.Services;
+using Application.Interfaces.Services.Auth;
 using Application.UseCases.Commands.Users.Refresh;
 using Domain.Entities;
 using FakeItEasy;
