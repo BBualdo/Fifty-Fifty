@@ -6,7 +6,7 @@ using FakeItEasy;
 using Microsoft.AspNetCore.Identity;
 using Task = System.Threading.Tasks.Task;
 
-namespace Tests.Handlers;
+namespace Tests.Handlers.Users;
 
 public class LoginUserCommandHandlerTests
 {

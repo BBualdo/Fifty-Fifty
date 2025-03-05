@@ -4,7 +4,7 @@ using Domain.Entities;
 using FakeItEasy;
 using Task = System.Threading.Tasks.Task;
 
-namespace Tests.Handlers;
+namespace Tests.Handlers.Users;
 
 public class LogoutUserCommandHandlerTests
 {

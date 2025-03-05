@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Shared.Helpers;
 using Task = System.Threading.Tasks.Task;
 
-namespace Tests.Handlers;
+namespace Tests.Handlers.Users;
 
 public class RegisterUserCommandHandlerTests
 {
