@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using Domain.Entities;
 using Infrastructure.Services.Auth;
+using Microsoft.Extensions.Options;
 using Shared;
 
 namespace Tests.Services;
@@ -14,13 +15,13 @@ public class TokenServiceTests
     {
         _jwtSettings = new JwtSettings
         {
-            Secret = "superSecretKeyForTestingPurposesOnly123!",
+            SecretKey = "superSecretKeyForTestingPurposesOnly123!",
             Issuer = "TestIssuer",
             Audience = "TestAudience",
             ExpirationMinutes = 30,
         };
 
-        _tokenService = new TokenService(_jwtSettings);
+        _tokenService = new TokenService(Options.Create(_jwtSettings));
     }
 
     [Fact]

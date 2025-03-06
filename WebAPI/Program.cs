@@ -32,6 +32,7 @@ builder.Services.AddMediatR(config =>
 // Registering all validators in assembly (not only those for user registering)
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommandValidator>();
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();

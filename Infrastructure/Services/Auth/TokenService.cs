@@ -4,15 +4,16 @@ using System.Security.Cryptography;
 using System.Text;
 using Application.Interfaces.Services.Auth;
 using Domain.Entities;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Shared;
 using Shared.DTO;
 
 namespace Infrastructure.Services.Auth;
 
-public class TokenService(JwtSettings jwtSettings) : ITokenService
+public class TokenService(IOptions<JwtSettings> options) : ITokenService
 {
-    private readonly JwtSettings _jwtSettings = jwtSettings;
+    private readonly JwtSettings _jwtSettings = options.Value;
     
     public JwtTokenDto GenerateJwtToken(User user)
     {
@@ -25,7 +26,7 @@ public class TokenService(JwtSettings jwtSettings) : ITokenService
             new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         };
         
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
