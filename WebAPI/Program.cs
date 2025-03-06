@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
+using System.Text;
 using FluentValidation;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services.Auth;
@@ -9,6 +9,9 @@ using Domain.Entities;
 using Infrastructure;
 using Infrastructure.Repositories;
 using Infrastructure.Services.Auth;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using Shared;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +22,18 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JWT"))
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => 
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["JWT:Issuer"],
+            ValidAudience = builder.Configuration["JWT:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]))
+        });
 
 builder.Services.AddAuthorization();
 
@@ -27,7 +42,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     throw new ArgumentException("Database connection string not found!")));
 
 builder.Services.AddMediatR(config => 
-    config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+    config.RegisterServicesFromAssemblies(AppDomain.CurrentDomain.GetAssemblies()));
 
 // Registering all validators in assembly (not only those for user registering)
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommandValidator>();
@@ -45,8 +60,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwaggerUI(configuration =>
-        configuration.SwaggerEndpoint("/openapi/v1.json", "Fifty-Fifty v1"));
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
