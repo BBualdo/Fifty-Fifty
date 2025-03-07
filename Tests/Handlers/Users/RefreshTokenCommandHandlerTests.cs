@@ -59,6 +59,9 @@ public class RefreshTokenCommandHandlerTests
         A.CallTo(() => _refreshTokensRepository.GetByTokenAsync(A<string>._, A<CancellationToken>._))
             .ReturnsLazily((string token, CancellationToken _) =>
                 _refreshTokensStorage.FirstOrDefault(t => t.Token == token));
+        A.CallTo(() => _refreshTokensRepository.GetWithUserByTokenAsync(A<string>._, A<CancellationToken>._))
+            .ReturnsLazily((string token, CancellationToken _) =>
+                _refreshTokensStorage.FirstOrDefault(t => t.Token == token));
         A.CallTo(() => _refreshTokensRepository.AddAsync(A<RefreshToken>._, A<CancellationToken>._))
             .Invokes((RefreshToken token, CancellationToken _) => _refreshTokensStorage.Add(token));
 

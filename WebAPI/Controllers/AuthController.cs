@@ -42,8 +42,8 @@ public class AuthController(IMediator mediator) : ControllerBase
     [HttpPost("logout")]
     public async Task<IActionResult> Logout(LogoutUserCommand command, CancellationToken cancellationToken)
     {
-        await _mediator.Send(command, cancellationToken);
-        return Ok();
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
     }
 
     [Authorize]

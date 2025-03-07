@@ -14,7 +14,7 @@ public class RefreshTokenCommandHandler(IRefreshTokensRepository refreshTokensRe
     public async Task<Result<TokenResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
         // Checks if refresh token exists, is valid, not used, revoked or expired and belongs to user
-        var refreshToken = await _refreshTokensRepository.GetByTokenAsync(request.RefreshToken, cancellationToken);
+        var refreshToken = await _refreshTokensRepository.GetWithUserByTokenAsync(request.RefreshToken, cancellationToken);
         
         if (refreshToken == null || refreshToken.IsUsed || refreshToken.IsRevoked || refreshToken.ExpiresAt < DateTimeOffset.UtcNow)
             return Result<TokenResponseDto>.Failure("Invalid token", ["Please try login again."]);

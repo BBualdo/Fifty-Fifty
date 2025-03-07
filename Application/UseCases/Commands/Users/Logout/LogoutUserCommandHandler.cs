@@ -12,46 +12,43 @@ public class LogoutUserCommandHandler(IRefreshTokensRepository refreshTokensRepo
     
     public async Task<Result<bool>> Handle(LogoutUserCommand request, CancellationToken cancellationToken)
     {
+        var refreshToken = await _refreshTokensRepository.GetByTokenAsync(request.RefreshToken, cancellationToken);
+        if (refreshToken == null)
+        {
+            // TODO: Log that user used token that doesn't exist
+            return Result<bool>.Success(true, "User logged out successfully.");
+        }
+        
         // Checking if refresh token exists, is valid, not used or revoked and belongs to user
         var userId = _userContext.UserId;
         if (userId == null)
         {
-            // TODO: Log that logout has been invoked without permission
-            return Result<bool>.Success(true, "User logged out successfully.");
+            // TODO: Log that logout has been invoked without JWT or with expired one
         }
         
-        var refreshToken = await _refreshTokensRepository.GetByTokenAsync(request.RefreshToken, cancellationToken);
-        
-        if (refreshToken == null)
+        if (refreshToken.UserId != userId)
         {
-            // TODO: Log that user used token that doesn't exist
+            // TODO: Log that user used token that doesn't belong to him
         }
-        else
+        
+        if (refreshToken.IsRevoked)
         {
-            if (refreshToken.UserId != userId)
-            {
-                // TODO: Log that user used token that doesn't belong to him
-            }
-            
-            if (refreshToken.IsRevoked)
-            {
-                // TODO: Log that user used revoked token
-            }
-            
-            if (refreshToken.IsUsed)
-            {
-                // TODO: Log that user used token that was used before
-            }
+            // TODO: Log that user used revoked token
+        }
+        
+        if (refreshToken.IsUsed)
+        {
+            // TODO: Log that user used token that was used before
+        }
 
-            if (refreshToken.ExpiresAt < DateTime.UtcNow)
-            {
-                // TODO: Log that user used expired token
-            }
-            
-            // Sets refresh token as revoked
-            refreshToken.IsRevoked = true;
-            await _refreshTokensRepository.SaveChangesAsync(cancellationToken);
+        if (refreshToken.ExpiresAt < DateTime.UtcNow)
+        {
+            // TODO: Log that user used expired token
         }
+            
+        // Sets refresh token as revoked
+        refreshToken.IsRevoked = true;
+        await _refreshTokensRepository.SaveChangesAsync(cancellationToken);
         
         // Returns success anyway to not inform user about any problems
         return Result<bool>.Success(true, "User logged out successfully.");
