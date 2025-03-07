@@ -1,16 +1,25 @@
 ﻿using Application.Interfaces.Repositories;
+using Application.Interfaces.Services.Auth;
 using MediatR;
 using Shared.DTO;
 
 namespace Application.UseCases.Commands.Users.Logout;
 
-public class LogoutUserCommandHandler(IRefreshTokensRepository refreshTokensRepository) : IRequestHandler<LogoutUserCommand, Result<bool>>
+public class LogoutUserCommandHandler(IRefreshTokensRepository refreshTokensRepository, IUserContext userContext) : IRequestHandler<LogoutUserCommand, Result<bool>>
 {
     private readonly IRefreshTokensRepository _refreshTokensRepository = refreshTokensRepository;
+    private readonly IUserContext _userContext = userContext;
     
     public async Task<Result<bool>> Handle(LogoutUserCommand request, CancellationToken cancellationToken)
     {
         // Checking if refresh token exists, is valid, not used or revoked and belongs to user
+        var userId = _userContext.UserId;
+        if (userId == null)
+        {
+            // TODO: Log that logout has been invoked without permission
+            return Result<bool>.Success(true, "User logged out successfully.");
+        }
+        
         var refreshToken = await _refreshTokensRepository.GetByTokenAsync(request.RefreshToken, cancellationToken);
         
         if (refreshToken == null)
@@ -19,7 +28,7 @@ public class LogoutUserCommandHandler(IRefreshTokensRepository refreshTokensRepo
         }
         else
         {
-            if (refreshToken.UserId != request.UserId)
+            if (refreshToken.UserId != userId)
             {
                 // TODO: Log that user used token that doesn't belong to him
             }

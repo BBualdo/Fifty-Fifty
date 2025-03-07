@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces.Repositories;
+using Application.Interfaces.Services.Auth;
 using Application.UseCases.Commands.Users.Logout;
 using Domain.Entities;
 using FakeItEasy;
@@ -11,11 +12,14 @@ public class LogoutUserCommandHandlerTests
     private readonly User _dummyUser;
     private readonly LogoutUserCommandHandler _handler;
     private readonly IRefreshTokensRepository _refreshTokensRepository;
+    private readonly IUserContext _userContext;
+    
     private readonly List<RefreshToken> _refreshTokensStorage;
 
     public LogoutUserCommandHandlerTests()
     {
         _refreshTokensRepository = A.Fake<IRefreshTokensRepository>();
+        _userContext = A.Fake<IUserContext>();
 
         var userId = Guid.NewGuid();
         
@@ -56,8 +60,10 @@ public class LogoutUserCommandHandlerTests
         A.CallTo(() => _refreshTokensRepository.GetByTokenAsync(A<string>._, A<CancellationToken>._))
             .ReturnsLazily((string token, CancellationToken _) => 
                 _refreshTokensStorage.FirstOrDefault(t => t.Token == token));
+        A.CallTo(() => _userContext.UserId)
+            .Returns(_dummyUser.Id);
 
-        _handler = new LogoutUserCommandHandler(_refreshTokensRepository);
+        _handler = new LogoutUserCommandHandler(_refreshTokensRepository, _userContext);
     }
 
     [Fact]
@@ -65,7 +71,7 @@ public class LogoutUserCommandHandlerTests
     {
         // Arrange
         var token = GetToken("validToken");
-        var command = new LogoutUserCommand(token!.Token, _dummyUser.Id);
+        var command = new LogoutUserCommand(token!.Token);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -83,7 +89,7 @@ public class LogoutUserCommandHandlerTests
     {
         // Arrange
         var token = GetToken("revokedToken");
-        var command = new LogoutUserCommand(token!.Token, _dummyUser.Id);
+        var command = new LogoutUserCommand(token!.Token);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -98,7 +104,7 @@ public class LogoutUserCommandHandlerTests
     {
         // Arrange
         var token = GetToken("usedToken");
-        var command = new LogoutUserCommand(token!.Token, _dummyUser.Id);
+        var command = new LogoutUserCommand(token!.Token);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -113,7 +119,7 @@ public class LogoutUserCommandHandlerTests
     {
         // Arrange
         var token = GetToken("expiredToken");
-        var command = new LogoutUserCommand(token!.Token, _dummyUser.Id);
+        var command = new LogoutUserCommand(token!.Token);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -128,7 +134,7 @@ public class LogoutUserCommandHandlerTests
     {
         // Arrange
         var token = "notExistingToken";
-        var command = new LogoutUserCommand(token, _dummyUser.Id);
+        var command = new LogoutUserCommand(token);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -148,7 +154,7 @@ public class LogoutUserCommandHandlerTests
         };
         _refreshTokensStorage.Add(token);
 
-        var command = new LogoutUserCommand(token.Token, _dummyUser.Id);
+        var command = new LogoutUserCommand(token.Token);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
